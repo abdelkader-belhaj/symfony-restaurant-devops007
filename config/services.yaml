@@ -1,0 +1,39 @@
+# config/services.yaml
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/Controller/'
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
+    App\Service\ImageDataUriService: ~
+
+    # Auth Service
+    App\Service\AuthService:
+        arguments:
+            $requestStack: '@request_stack'
+
+    # Security Subscriber
+    App\EventSubscriber\SecuritySubscriber:
+        arguments:
+            $router: '@router'
+            $requestStack: '@request_stack'
+        tags:
+            - { name: kernel.event_subscriber, priority: 10 }
+
+    App\Service\GoogleAuthService:
+        arguments:
+            $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
+            $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'

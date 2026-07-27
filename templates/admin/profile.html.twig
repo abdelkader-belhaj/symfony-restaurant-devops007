@@ -1,0 +1,23 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block title %}Profil{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-0 pb-0">
+          <h5 class="mb-0">Mon profil</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-2"><strong>Nom:</strong> {{ user.nomComplete ?? 'Utilisateur' }}</p>
+          <p class="mb-2"><strong>Email:</strong> {{ user.email ?? '' }}</p>
+          <p class="mb-2"><strong>Téléphone:</strong> {{ user.tel ?? '' }}</p>
+          <p class="mb-0"><strong>Rôle:</strong> {{ user.type ?? 'client' }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

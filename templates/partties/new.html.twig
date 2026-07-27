@@ -1,0 +1,53 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block title %}Ajouter un Evenement{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Ajouter un Evenement</h2>
+        </div>
+        <div class="card-body">
+            <form action="{{ path('app_partties_create') }}" method="post" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label class="form-label">Titre :</label>
+                    <input type="text" name="titre" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Prix :</label>
+                    <input type="number" name="price" class="form-control" min="0" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Debut :</label>
+                    <input type="text" name="debut" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ligne 1 :</label>
+                    <input type="text" name="ligne1" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ligne 2 :</label>
+                    <input type="text" name="ligne2" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ligne 3 :</label>
+                    <input type="text" name="ligne3" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Final :</label>
+                    <input type="text" name="final" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Image :</label>
+                    <input type="file" name="image" class="form-control" accept="image/*" required>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_partties_index') }}" class="btn btn-outline-secondary">Retour</a>
+                    <button type="submit" class="btn btn-primary">Creer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block title %}Modifier Evenement{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="card shadow-sm mx-auto" style="max-width: 600px;">
+        <div class="card-header bg-warning text-dark">
+            <h2 class="mb-0">Modifier un Evenement</h2>
+        </div>
+        <div class="card-body">
+            <form action="{{ path('app_partties_update', {key: key}) }}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Titre :</label>
+                    <input type="text" name="titre" value="{{ parttie.titre|default('') }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Prix :</label>
+                    <input type="number" name="price" value="{{ parttie.price|default(0) }}" class="form-control" min="0" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Debut :</label>
+                    <input type="text" name="debut" value="{{ parttie.debut|default('') }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ligne 1 :</label>
+                    <input type="text" name="ligne1" value="{{ parttie.ligne1|default('') }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ligne 2 :</label>
+                    <input type="text" name="ligne2" value="{{ parttie.ligne2|default('') }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Ligne 3 :</label>
+                    <input type="text" name="ligne3" value="{{ parttie.ligne3|default('') }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Final :</label>
+                    <input type="text" name="final" value="{{ parttie.final|default('') }}" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Image :</label>
+                    <input type="text" name="image" value="{{ parttie.image|default('') }}" class="form-control">
+                    {% if parttie.image|default('') %}
+                        <div class="mt-2">
+                            <img src="{{ parttie.image }}" alt="Image" style="max-width:120px; border-radius:8px;">
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{{ path('app_partties_index') }}" class="btn btn-outline-secondary">Retour</a>
+                    <button type="submit" class="btn btn-warning">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

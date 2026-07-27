@@ -1,0 +1,136 @@
+{% extends 'baseAdmin.html.twig' %}
+
+{% block title %}Liste des Evenements{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Gestion des Evenements</h2>
+            <p class="text-muted mb-0">Gerez les evenements affiches sur le site.</p>
+        </div>
+        <a href="{{ path('app_partties_new') }}" class="btn btn-primary d-flex align-items-center">
+            <i class="fas fa-plus me-2"></i>Ajouter un evenement
+        </a>
+    </div>
+
+    {% if partties is not empty %}
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-items-center justify-content-center mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Evenement</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Debut</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Programme</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Prix</th>
+                                <th class="text-uppercase text-secondary text-xxs font-weight-bolder text-center opacity-7 ps-2" style="min-width: 120px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for key, parttie in partties %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex px-2 align-items-center">
+                                            <div class="me-3">
+                                                {% if parttie.image is defined and parttie.image %}
+                                                    <img src="{{ parttie.image }}" class="event-image" alt="{{ parttie.titre|default('Evenement') }}">
+                                                {% else %}
+                                                    <div class="event-placeholder d-flex align-items-center justify-content-center">
+                                                        {{ parttie.titre|default('E')|slice(0, 1)|upper }}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="my-auto">
+                                                <h6 class="mb-0 text-sm">{{ parttie.titre|default('Sans titre') }}</h6>
+                                                <p class="text-xs text-secondary mb-0">{{ parttie.final|default('') }}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <p class="text-sm mb-0">{{ parttie.debut|default('Non specifie') }}</p>
+                                    </td>
+                                    <td>
+                                        <p class="text-sm mb-0">
+                                            {{ parttie.ligne1|default('') }}
+                                            {% if parttie.ligne2 is defined and parttie.ligne2 %}
+                                                <br><span class="text-xs text-secondary">{{ parttie.ligne2 }}</span>
+                                            {% endif %}
+                                        </p>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary text-xs font-weight-bold">
+                                            {{ parttie.price|default(0) }} TND
+                                        </span>
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a href="{{ path('app_partties_edit', { key: key }) }}"
+                                               class="btn btn-warning btn-xs px-2 py-1"
+                                               title="Modifier"
+                                               style="font-size: 0.75rem;">
+                                                <i class="fas fa-edit me-1"></i>Modifier
+                                            </a>
+                                            <a href="{{ path('app_partties_delete', { key: key }) }}"
+                                               class="btn btn-danger btn-xs px-2 py-1"
+                                               title="Supprimer"
+                                               style="font-size: 0.75rem;"
+                                               onclick="return confirm('Etes-vous sur de vouloir supprimer cet evenement ?');">
+                                                <i class="fas fa-trash me-1"></i>Supprimer
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center mt-4">
+            <div class="card">
+                <div class="card-body py-5">
+                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">Aucun evenement trouve</h5>
+                    <p class="text-muted mb-3">Commencez par ajouter votre premier evenement.</p>
+                    <a href="{{ path('app_partties_new') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Ajouter un evenement
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.event-image {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.event-placeholder {
+    width: 50px;
+    height: 50px;
+    background-color: #6c757d;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+}
+.table th {
+    border-bottom: 1px solid #e9ecef;
+    font-weight: 600;
+}
+.gap-2 {
+    gap: 0.5rem;
+}
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadeaux - Délicieux</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="{{ asset('assets/vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/vendor/aos/aos.css') }}" rel="stylesheet">
+    <link href="{{ asset('assets/css/main.css') }}" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: #1e160d; /* Dark restoration bg */
+            --surface: #42301c; /* Surface from Delicious theme */
+            --surface-strong: #2d2214;
+            --text: #ffffff;
+            --muted: #adadad;
+            --accent: #ffb03b; /* Gold/Orange from Delicious */
+            --accent-2: #e69b2d;
+            --success: #ffb03b; /* Using accent for success to keep theme consistency */
+            --warning: #f59e0b;
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.6);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text);
+            background:
+                linear-gradient(rgba(30, 22, 13, 0.9), rgba(30, 22, 13, 0.9)),
+                url('{{ asset("assets/img/hero-bg.jpg") }}');
+            background-size: cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .shell {
+            position: relative;
+            min-height: 100vh;
+            padding-top: 100px; /* Offset for fixed header */
+            padding-bottom: 60px;
+        }
+
+        .hero {
+            padding: 40px 0 20px;
+            text-align: center;
+        }
+
+        .hero h1 {
+            margin: 10px 0 10px;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            color: var(--accent);
+            font-family: 'Satisfy', cursive;
+            letter-spacing: 0.02em;
+        }
+
+        .hero p {
+            margin: 0 auto;
+            max-width: 700px;
+            font-size: 1.1rem;
+            color: var(--muted);
+        }
+
+        .grid {
+            padding: 0 0 60px;
+        }
+
+        .cardx {
+            background: var(--surface);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 176, 59, 0.2);
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .cardx:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent);
+        }
+
+        .overview,
+        .details,
+        .rules {
+            padding: 28px;
+        }
+
+        .reward-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        .reward-active { background: rgba(255, 176, 59, 0.2); color: var(--accent); }
+        .reward-waiting { background: rgba(255, 255, 255, 0.1); color: var(--muted); }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .btn-soft {
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-soft:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-accent-soft {
+            background: var(--accent);
+            color: #1e160d;
+        }
+
+        .metric-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 22px;
+        }
+
+        .metric {
+            padding: 24px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .metric .label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .metric .value {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .progress {
+            height: 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        }
+
+        .gift-card {
+            padding: 35px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #42301c, #2d2214);
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 176, 59, 0.2);
+        }
+
+        .gift-card::after {
+            content: '🎁';
+            position: absolute;
+            right: -20px;
+            bottom: -20px;
+            font-size: 120px;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        .gift-number {
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 800;
+            line-height: 1;
+            margin: 0;
+        }
+
+        .gift-note {
+            color: rgba(255, 255, 255, 0.82);
+        }
+
+        .gift-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .roulette-card {
+            background: radial-gradient(circle at center, #42301c 0%, #1e160d 100%);
+            color: #fff;
+            padding: 40px;
+            border-radius: 40px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255, 176, 59, 0.2);
+        }
+
+        .roulette-card::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255, 211, 107, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .roulette-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .roulette-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            font-size: 0.8rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .roulette-title {
+            font-size: 2.2rem;
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(255, 176, 59, 0.3);
+            font-family: 'Satisfy', cursive;
+        }
+
+        .roulette-subtitle {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.76);
+            line-height: 1.7;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .roulette-stage {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            gap: 20px;
+            justify-items: center;
+        }
+
+        .roulette-preview-shell {
+            position: relative;
+            width: min(100%, 600px);
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            margin: 0 auto;
+            filter: drop-shadow(0 0 50px rgba(0, 0, 0, 0.5));
+        }
+
+        .roulette-preview-shell::before {
+            content: "";
+            position: absolute;
+            inset: -15px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 211, 107, 0.2), transparent 30%);
+            animation: rotateOrbit 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotateOrbit {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .roulette-pointer {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            z-index: 5;
+            width: 0;
+            height: 0;
+            transform: translateX(-50%);
+            border-left: 13px solid transparent;
+            border-right: 13px solid transparent;
+            border-top: 25px solid var(--accent);
+            filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5));
+        }
+
+        .roulette-wheel {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 12px solid #2d2214;
+            overflow: hidden;
+            background: #111;
+            box-shadow:
+                0 0 0 4px var(--accent),
+                inset 0 0 60px rgba(0, 0, 0, 0.8);
+            transform: rotate(0deg);
+            transition: transform 5s cubic-bezier(0.15, 0, 0.15, 1);
+            will-change: transform;
+        }
+
+        .roulette-wheel::after {
+            content: "";
+            position: absolute;
+            inset: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            pointer-events: none;
+        }
+
+        .roulette-wheel svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .roulette-slice-image {
+            filter: saturate(1.04) contrast(1.04);
+        }
+
+        .roulette-slice-shade {
+            fill: rgba(0, 0, 0, 0.15);
+        }
+
+        .roulette-slice-border {
+            fill: none;
+            stroke: rgba(255, 176, 59, 0.4);
+            stroke-width: 0.8;
+        }
+
+        .roulette-slice-title {
+            fill: #fff;
+            font-family: 'Poppins', sans-serif;
+            font-size: 3.2px;
+            font-weight: 700;
+            text-anchor: middle;
+            paint-order: stroke;
+            stroke: rgba(0, 0, 0, 0.72);
+            stroke-width: 1.2px;
+            stroke-linejoin: round;
+        }
+
+        .roulette-center {
+            position: relative;
+            z-index: 2;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, #ffd36b, #ffb03b);
+            color: #1a1a1a;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            box-shadow:
+                0 0 30px rgba(255, 176, 59, 0.4),
+                inset 0 0 15px rgba(255, 255, 255, 0.5);
+            border: 6px solid #2d2214;
+        }
+
+        .roulette-center span,
+        .roulette-center small {
+            display: block;
+            line-height: 1.1;
+        }
+
+        .roulette-center small {
+            font-size: 0.64rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .roulette-cursor-note {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0 auto 15px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.88);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            width: fit-content;
+        }
+
+        .roulette-btn {
+            min-width: 240px;
+            padding: 16px 32px;
+            border-radius: 999px;
+            border: 0;
+            background: linear-gradient(135deg, #ffd36b, var(--accent));
+            color: #1a1a1a;
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 18px 35px rgba(255, 176, 59, 0.3);
+            transition: all .3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            z-index: 10;
+        }
+
+        .roulette-btn:not(:disabled):hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 0 25px 50px rgba(255, 176, 59, 0.4);
+        }
+
+        .roulette-btn:not(:disabled):active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .roulette-btn::after {
+            content: "";
+            position: absolute;
+            inset: -4px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ffd36b, #ff8d3c);
+            z-index: -1;
+            opacity: 0.3;
+            filter: blur(8px);
+            transition: opacity 0.3s;
+        }
+
+        .roulette-btn:not(:disabled):hover::after {
+            opacity: 0.6;
+        }
+
+        .is-spinning .roulette-btn {
+            animation: pulseBtn 1s infinite alternate;
+        }
+
+        @keyframes pulseBtn {
+            from { opacity: 0.8; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .roulette-result-card {
+            max-width: 500px;
+            margin: 0 auto;
+            border-radius: 22px;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        }
+
+        .roulette-result-card img {
+            width: 78px;
+            height: 78px;
+            border-radius: 18px;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .roulette-result-card .result-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .roulette-result-card .result-meta {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 0.9rem;
+        }
+
+        .roulette-empty {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 22px;
+            border-radius: 22px;
+            border: 1px dashed rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+        }
+
+        .is-spinning .roulette-wheel {
+            filter: saturate(1.2) brightness(1.1);
+        }
+
+        .roulette-light-dot {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            z-index: 6;
+            box-shadow: 0 0 10px #fff, 0 0 20px #ffd36b;
+        }
+
+        .gift-item {
+            display: flex;
+            gap: 14px;
+            align-items: start;
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+        }
+
+        .gift-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: rgba(255, 107, 53, 0.12);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+        }
+
+        .btn-soft {
+            border: 0;
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #1e160d;
+            box-shadow: 0 16px 30px rgba(255, 176, 59, 0.3);
+            font-weight: 700;
+        }
+
+        .btn-light-soft {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-light-soft:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent);
+        }
+
+        .alert {
+            border-radius: 16px;
+            border: 0;
+            box-shadow: var(--shadow);
+        }
+
+        .text-muted-soft { color: var(--muted); }
+
+        @media (max-width: 991px) {
+            .metric-row { grid-template-columns: 1fr; }
+            .roulette-wheel-shell { max-width: 100%; }
+            .roulette-label { width: 138px; margin-left: -69px; }
+        }
+        .winner-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.76);
+            backdrop-filter: blur(10px);
+        }
+
+        .winner-modal.is-visible {
+            display: flex;
+        }
+
+        .winner-card {
+            width: min(460px, 100%);
+            border-radius: 24px;
+            padding: 32px;
+            text-align: center;
+            color: #fff;
+            background: linear-gradient(135deg, #111827, #243447);
+            border: 1px solid rgba(255, 211, 107, 0.38);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+            animation: winnerPop 0.6s cubic-bezier(.2, .8, .2, 1);
+        }
+
+        .winner-card img {
+            width: 132px;
+            height: 132px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #ffd36b;
+            box-shadow: 0 0 0 12px rgba(255, 211, 107, 0.16);
+            margin-bottom: 20px;
+            animation: winnerPulse 1.3s ease-in-out infinite;
+        }
+
+        .winner-card h3 {
+            margin: 0 0 10px;
+            font-size: 1.9rem;
+            font-weight: 800;
+        }
+
+        .winner-card p {
+            color: rgba(255, 255, 255, 0.78);
+            margin-bottom: 0;
+        }
+
+        .winner-countdown {
+            display: inline-flex;
+            margin-top: 18px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255, 211, 107, 0.16);
+            color: #ffd36b;
+            font-weight: 700;
+        }
+
+        @keyframes winnerPop {
+            from { opacity: 0; transform: scale(0.86) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes winnerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+     <header id="header" class="header fixed-top">
+
+        <div class="branding d-flex align-items-center">
+            <div class="container position-relative d-flex align-items-center justify-content-between">
+
+                <!-- Logo à gauche -->
+                <a class="logo d-flex align-items-center" href="{{ path('front_index') }}">
+                    <h1 class="sitename">Délicieux</h1>
+                </a>
+
+                <!-- Navigation avec auth intégrée -->
+                <nav id="navmenu" class="navmenu">
+                    <ul>
+                        <li><a href="{{ path('front_index') }}#hero">Home</a></li>
+                        <li><a href="{{ path('front_index') }}#about">About</a></li>
+                        <li><a href="{{ path('front_index') }}#menu">Menu</a></li>
+                        <li><a href="{{ path('front_index') }}#specials">Specials</a></li>
+                        <li><a href="{{ path('front_index') }}#events">Events</a></li>
+                        <li><a href="{{ path('front_index') }}#chefs">Chefs</a></li>
+                        <li><a href="{{ path('front_index') }}#gallery">Gallery</a></li>
+                        <li><a href="{{ path('front_index') }}#contact">Contact</a></li>
+
+   {% if app.session.get('user') %}
+    {% set unclaimed_rewards = has_unclaimed_rewards(app.session.get('user')) %}
+    <!-- Utilisateur connecté -->
+    <li class="nav-auth-section">
+        <div class="dropdown">
+            <button class="btn btn-auth dropdown-toggle d-flex align-items-center position-relative" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-circle me-2"></i>
+                <span>nom : {{ app.session.get('user').nomComplete }}</span>
+                {% if unclaimed_rewards %}
+                    <span class="position-absolute top-0 start-100 translate-middle reward-notification-badge" style="margin-left: -5px; margin-top: 5px;">
+                        <span class="reward-pulse"></span>
+                    </span>
+                {% endif %}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end auth-dropdown" aria-labelledby="userDropdown">
+                <li class="dropdown-header">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person-badge me-2"></i>
+                        <div>
+                            <h6 class="mb-0">{{ app.session.get('user').nomComplete }}</h6>
+                            <small class="text-muted">{{ app.session.get('user').email }}</small>
+                        </div>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="auth-dropdown-footer">
+                    <div class="d-flex justify-content-around align-items-center p-2">
+                        {% if app.session.get('user').type == 'client' %}
+                            <a class="auth-action-item" href="{{ path('user_profile') }}" data-label="Profil">
+                                <i class="bi bi-person"></i>
+                            </a>
+                            <a class="auth-action-item position-relative active" href="{{ path('user_rewards') }}" data-label="Cadeaux">
+                                <i class="bi bi-gift"></i>
+                                {% if unclaimed_rewards %}
+                                    <span class="auth-notification-dot reward-notification-badge"></span>
+                                {% endif %}
+                            </a>
+                        {% endif %}
+                        <a class="auth-action-item text-danger" href="{{ path('app_logout') }}" data-label="Déconnexion">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </li>
+
+{% else %}
+    <!-- Utilisateur non connecté -->
+    <li class="nav-auth-section">
+        <div class="dropdown">
+            <button class="btn btn-auth dropdown-toggle d-flex align-items-center" type="button" id="authDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person me-2"></i>
+                <span>Mon Compte</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end auth-dropdown" aria-labelledby="authDropdown">
+                <li><a class="dropdown-item" href="{{ path('app_login') }}"><i class="bi bi-box-arrow-in-right me-2"></i>Connexion</a></li>
+                <li><a class="dropdown-item" href="{{ path('app_register') }}"><i class="bi bi-person-plus me-2"></i>Inscription</a></li>
+            </ul>
+        </div>
+    </li>
+{% endif %}
+
+                    </ul>
+                    <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+                </nav>
+
+            </div>
+        </div>
+
+    </header>
+
+    <div class="shell">
+        <div class="container hero">
+            <span class="eyebrow"><i class="bi bi-gift"></i> Programme cadeaux</span>
+            <h1>Vos récompenses client</h1>
+            <p>
+                Cumulez vos commandes validées et débloquez une remise de 25% sur votre prochaine commande dès que votre total dépasse 500$.
+                Au-delà de 1000$, une roulette premium de 6 plats s’ouvre pour votre table.
+            </p>
+        </div>
+
+        <div class="container grid">
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} mb-4" role="alert">
+                        <i class="bi bi-{{ label == 'success' ? 'check-circle' : 'exclamation-triangle' }} me-2"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="cardx overview">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+                            <div>
+                                <div class="section-title fw-bold mb-1">Résumé fidélité</div>
+                                <div class="text-muted-soft">Les commandes validées ou livrées sont comptabilisées. Deux paliers sont disponibles.</div>
+                            </div>
+                            <span class="reward-badge {{ reward.rewardAvailable or reward.giftDiscountActive or reward.giftDiscountUsed or reward.rouletteAvailable or reward.rouletteUsed ? 'reward-active' : 'reward-waiting' }}">
+                                <i class="bi bi-{{ reward.rouletteUsed or reward.giftDiscountActive ? 'check-circle' : 'hourglass-split' }}"></i>
+                                {{ reward.rouletteUsed ? 'Roulette utilisée' : (reward.rouletteAvailable ? 'Roulette disponible' : (reward.giftDiscountUsed ? 'Remise utilisée' : (reward.giftDiscountActive ? 'Remise activée' : (reward.rewardAvailable ? 'Remise disponible' : 'En progression')))) }}
+                            </span>
+                        </div>
+
+                        <div class="metric-row">
+                            <div class="metric">
+                                <div class="label text-muted-soft">Total cumulé</div>
+                                <div class="value">{{ reward.totalSpent|number_format(2, '.', ' ') }} $</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label text-muted-soft">Objectif</div>
+                                <div class="value">{{ reward.threshold|number_format(0, '.', ' ') }} $</div>
+                            </div>
+                            <div class="metric">
+                                <div class="label text-muted-soft">Réduction</div>
+                                <div class="value">{{ reward.discountRate }}%</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="fw-semibold">Progression vers le cadeau</span>
+                                <span class="text-muted-soft">{{ reward.remaining|number_format(2, '.', ' ') }} $ restants</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ reward.progressPercent|round }}%"></div>
+                            </div>
+                        </div>
+
+                        <div class="gift-card mt-4">
+                            <p class="mb-2 opacity-75">Votre prochaine récompense</p>
+                            <h2 class="gift-number mb-2">25%</h2>
+                            <div class="gift-note">
+                                Offre valable sur la prochaine commande après activation. Elle est consommée automatiquement dès qu’une commande est envoyée.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="cardx details mb-3 p-4">
+                        <div class="section-title fw-bold mb-4 fs-5">Actions rapides</div>
+
+                        {% if reward.giftDiscountUsed %}
+                            <div class="gift-item mb-3">
+                                <div class="gift-icon"><i class="bi bi-check2-circle"></i></div>
+                                <div>
+                                    <div class="fw-semibold">Remise deja utilisee</div>
+                                    <div class="text-muted-soft">Votre remise de 25% a deja ete appliquee une seule fois.</div>
+                                </div>
+                            </div>
+                            <a href="{{ path('app_menu_commande') }}" class="btn-soft btn-light-soft w-100">
+                                <i class="bi bi-shop me-2"></i> Voir le menu
+                            </a>
+                        {% elseif reward.rewardAvailable and not reward.giftDiscountActive %}
+                            <form method="post" class="mb-3">
+                                <button type="submit" class="btn-soft btn-accent w-100">
+                                    <i class="bi bi-gift me-2"></i> Activer ma remise de 25%
+                                </button>
+                            </form>
+                        {% elseif reward.giftDiscountActive %}
+                            <div class="gift-item mb-3">
+                                <div class="gift-icon"><i class="bi bi-check2"></i></div>
+                                <div>
+                                    <div class="fw-semibold">Remise prête à l'emploi</div>
+                                    <div class="text-muted-soft">Passez votre prochaine commande et la remise sera appliquée automatiquement.</div>
+                                </div>
+                            </div>
+                            <a href="{{ path('app_menu_commande') }}" class="btn-soft btn-accent w-100 mb-2">
+                                <i class="bi bi-bag-check me-2"></i> Commander maintenant
+                            </a>
+                            <p class="small text-muted-soft mb-0">La remise sera consommée automatiquement après validation de la commande.</p>
+                        {% else %}
+                            <div class="gift-item mb-3">
+                                <div class="gift-icon"><i class="bi bi-stars"></i></div>
+                                <div>
+                                    <div class="fw-semibold">Objectif cadeau</div>
+                                    <div class="text-muted-soft">Dépassez 500$ de commandes validées pour débloquer votre remise de 25%.</div>
+                                </div>
+                            </div>
+                            <a href="{{ path('app_menu_commande') }}" class="btn-soft btn-light-soft w-100">
+                                <i class="bi bi-shop me-2"></i> Voir le menu
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="cardx rules p-4">
+                        <div class="section-title fw-bold mb-4 fs-5">Comment ça marche</div>
+                        <div class="gift-list">
+                            <div class="gift-item">
+                                <div class="gift-icon"><i class="bi bi-receipt"></i></div>
+                                <div>
+                                    <div class="fw-semibold">1. Commandes validées</div>
+                                    <div class="text-muted-soft">Seules les commandes validées ou livrées sont prises en compte.</div>
+                                </div>
+                            </div>
+                            <div class="gift-item">
+                                <div class="gift-icon"><i class="bi bi-trophy"></i></div>
+                                <div>
+                                    <div class="fw-semibold">2. Cadeau débloqué</div>
+                                    <div class="text-muted-soft">Dès 500$, la remise de 25% devient disponible. Dès 1000$, la roulette premium s’active.</div>
+                                </div>
+                            </div>
+                            <div class="gift-item mb-0">
+                                <div class="gift-icon"><i class="bi bi-lightning-charge"></i></div>
+                                <div>
+                                    <div class="fw-semibold">3. Utilisation automatique</div>
+                                    <div class="text-muted-soft">La remise est appliquée sur la prochaine commande puis consommée. La roulette ne peut être utilisée qu’une seule fois.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="cardx roulette-card">
+                        <div class="roulette-header">
+                            <span class="roulette-eyebrow"><i class="bi bi-dice-5"></i> Roulette premium</span>
+                            <div class="roulette-title">Roulette du chef</div>
+                            <p class="roulette-subtitle">
+                                Dépassez 1000$ de commandes validées pour tourner une seule fois et gagner un plat parmi 6 choix du menu.
+                            </p>
+                        </div>
+
+                        <div class="roulette-cursor-note">
+                            <i class="bi bi-hand-index-thumb"></i>
+                            Repère visuel du tirage: la roue est pensée comme un curseur premium.
+                        </div>
+
+                        {% if rouletteItems is not empty %}
+                            <div class="roulette-stage" id="rouletteStage">
+                                <div class="roulette-preview-shell">
+                                    <div class="roulette-pointer"></div>
+                                    <div class="roulette-wheel" id="rouletteWheel"></div>
+                                    <div class="roulette-center">
+                                        <span>6 plats</span>
+                                        <small>Gagner un plat</small>
+                                    </div>
+                                </div>
+
+                                <button type="button"
+                                        class="roulette-btn"
+                                        id="rouletteSpinBtn"
+                                        {% if (not reward.rouletteAvailable and not reward.roulettePendingGift) or reward.rouletteUsed %}disabled{% endif %}>
+                                    <i class="bi bi-lightning-charge-fill me-2"></i>
+                                    {% if reward.rouletteUsed %}
+                                        Roulette déjà utilisée
+                                    {% elseif reward.roulettePendingGift %}
+                                        Commander mon cadeau
+                                    {% elseif reward.rouletteAvailable %}
+                                        Lancer la roulette
+                                    {% else %}
+                                        Dépassez 1000$ pour débloquer
+                                    {% endif %}
+                                </button>
+
+                                {% if reward.rouletteUsed and reward.rouletteResult is defined and reward.rouletteResult %}
+                                    <div class="roulette-result-card" id="rouletteResultCard">
+                                        <img src="{{ reward.rouletteResult.image|default(asset('assets/img/favicon.png')) }}" alt="Plat gagné">
+                                        <div>
+                                            <p class="result-name mb-1">{{ reward.rouletteResult.titre|default(reward.rouletteResult.name|default('Plat surprise')) }}</p>
+                                            <div class="result-meta">Plat gagné avec la roulette premium.</div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="roulette-empty" id="rouletteResultCard">
+                                        <i class="bi bi-stars fs-3 d-block mb-2"></i>
+                                        Le plat gagné apparaîtra ici après le tirage.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <div class="roulette-empty">
+                                <i class="bi bi-exclamation-triangle fs-3 d-block mb-2"></i>
+                                Aucun plat disponible pour construire la roulette.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="winner-modal" id="winnerModal" aria-live="polite">
+        <div class="winner-card">
+            <img src="{{ asset('assets/img/favicon.png') }}" alt="Plat gagne" id="winnerImage">
+            <h3>Vous avez gagne le repas</h3>
+            <p id="winnerText">Votre plat cadeau va etre ajoute a une commande gratuite.</p>
+            <div class="winner-countdown">Redirection vers la confirmation...</div>
+        </div>
+    </div> <!-- end shell -->
+
+    <footer id="footer" class="footer dark-background">
+
+  <div class="container">
+    <div class="row gy-3">
+      <div class="col-lg-3 col-md-6 d-flex">
+        <i class="bi bi-geo-alt icon"></i>
+        <div class="address">
+          <h4>Adresse</h4>
+          <p>108 rue Adam</p>
+          <p>New York, NY 535022</p>
+          <p></p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 d-flex">
+        <i class="bi bi-telephone icon"></i>
+        <div>
+          <h4>Contact</h4>
+          <p>
+            <strong>Téléphone :</strong> <span>+1 5589 55488 55</span><br>
+            <strong>Email :</strong> <span>info@example.com</span><br>
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6 d-flex">
+        <i class="bi bi-clock icon"></i>
+        <div>
+          <h4>Horaires d’ouverture</h4>
+          <p>
+            <strong>Ouvert tous </strong> <span>les jours</span><br>
+            <span>de 07h00 à </span> <span>02h00</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-3 col-md-6">
+        <h4>Suivez-nous</h4>
+        <div class="social-links d-flex">
+          <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
+          <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+          <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="container copyright text-center mt-4">
+    <div class="credits">
+        <p>Développé par  - <a href="mailto:abdelkader.belhaj@esprit.tn">abdelkader.belhaj@esprit.tn</a></p>
+    </div>
+  </div>
+
+</footer>
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>
+
+  <!-- Vendor JS Files -->
+  <script src="{{ asset('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ asset('assets/vendor/aos/aos.js') }}"></script>
+  <script src="{{ asset('assets/vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ asset('assets/vendor/imagesloaded/imagesloaded.pkgd.min.js') }}"></script>
+  <script src="{{ asset('assets/vendor/isotope-layout/isotope.pkgd.min.js') }}"></script>
+  <script src="{{ asset('assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
+
+  <!-- Main JS File -->
+  <script src="{{ asset('assets/js/main.js') }}"></script>
+
+    <script>
+        (function () {
+            const rouletteItems = {{ rouletteItems|json_encode|raw }};
+            const rouletteAvailable = {{ reward.rouletteAvailable ? 'true' : 'false' }};
+            const rouletteUsed = {{ reward.rouletteUsed ? 'true' : 'false' }};
+            const spinUrl = '{{ path('user_rewards_spin') }}';
+            const rouletteWheel = document.getElementById('rouletteWheel');
+            const spinButton = document.getElementById('rouletteSpinBtn');
+            const rouletteStage = document.getElementById('rouletteStage');
+            const resultCard = document.getElementById('rouletteResultCard');
+            const winnerModal = document.getElementById('winnerModal');
+            const winnerImage = document.getElementById('winnerImage');
+            const winnerText = document.getElementById('winnerText');
+
+            if (rouletteWheel && rouletteItems.length) {
+                const wheelItems = rouletteItems;
+                const slice = 360 / wheelItems.length;
+                rouletteWheel.innerHTML = '';
+
+                const svgNs = 'http://www.w3.org/2000/svg';
+                const xlinkNs = 'http://www.w3.org/1999/xlink';
+                const svg = document.createElementNS(svgNs, 'svg');
+                svg.setAttribute('viewBox', '0 0 100 100');
+                svg.setAttribute('aria-hidden', 'true');
+
+                const defs = document.createElementNS(svgNs, 'defs');
+                svg.appendChild(defs);
+
+                const polarPoint = (angleDeg, radius = 50) => {
+                    const angleRad = (angleDeg - 90) * Math.PI / 180;
+                    return {
+                        x: 50 + radius * Math.cos(angleRad),
+                        y: 50 + radius * Math.sin(angleRad)
+                    };
+                };
+
+                const slicePath = (startAngle, endAngle) => {
+                    const start = polarPoint(startAngle);
+                    const end = polarPoint(endAngle);
+                    const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+                    return `M 50 50 L ${start.x.toFixed(3)} ${start.y.toFixed(3)} A 50 50 0 ${largeArc} 1 ${end.x.toFixed(3)} ${end.y.toFixed(3)} Z`;
+                };
+
+                wheelItems.forEach((item, index) => {
+                    const startAngle = index * slice;
+                    const endAngle = startAngle + slice;
+                    const middleAngle = startAngle + (slice / 2);
+                    const pathData = slicePath(startAngle, endAngle);
+                    const clipId = `roulette-slice-${index}`;
+
+                    const clipPath = document.createElementNS(svgNs, 'clipPath');
+                    clipPath.setAttribute('id', clipId);
+
+                    const clipShape = document.createElementNS(svgNs, 'path');
+                    clipShape.setAttribute('d', pathData);
+                    clipPath.appendChild(clipShape);
+                    defs.appendChild(clipPath);
+
+                    const image = document.createElementNS(svgNs, 'image');
+                    image.setAttribute('x', '0');
+                    image.setAttribute('y', '0');
+                    image.setAttribute('width', '100');
+                    image.setAttribute('height', '100');
+                    image.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+                    image.setAttribute('clip-path', `url(#${clipId})`);
+                    image.setAttribute('class', 'roulette-slice-image');
+                    image.setAttributeNS(xlinkNs, 'href', item.image || '{{ asset('assets/img/favicon.png') }}');
+                    image.setAttribute('href', item.image || '{{ asset('assets/img/favicon.png') }}');
+                    svg.appendChild(image);
+
+                    const shade = document.createElementNS(svgNs, 'path');
+                    shade.setAttribute('d', pathData);
+                    shade.setAttribute('class', 'roulette-slice-shade');
+                    svg.appendChild(shade);
+
+                    const border = document.createElementNS(svgNs, 'path');
+                    border.setAttribute('d', pathData);
+                    border.setAttribute('class', 'roulette-slice-border');
+                    svg.appendChild(border);
+
+                    /*
+                    const titlePoint = polarPoint(middleAngle, 34);
+                    const title = document.createElementNS(svgNs, 'text');
+                    title.setAttribute('x', titlePoint.x.toFixed(2));
+                    title.setAttribute('y', titlePoint.y.toFixed(2));
+                    title.setAttribute('class', 'roulette-slice-title');
+                    title.textContent = item.titre || item.name || 'Plat';
+                    svg.appendChild(title);
+                    */
+                });
+
+                rouletteWheel.appendChild(svg);
+
+                // Ajout de petits points lumineux décoratifs autour de la roue
+                for (let i = 0; i < 12; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'roulette-light-dot';
+                    const angle = i * (360 / 12);
+                    const point = polarPoint(angle, 53); // Un peu plus loin que le rayon de 50
+                    dot.style.left = `${point.x}%`;
+                    dot.style.top = `${point.y}%`;
+                    dot.style.transform = 'translate(-50%, -50%)';
+                    document.querySelector('.roulette-preview-shell').appendChild(dot);
+                }
+            }
+
+            async function spinRoulette() {
+                if (!spinButton || rouletteUsed || !rouletteAvailable) {
+                    return;
+                }
+
+                spinButton.disabled = true;
+                spinButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Tirage en cours...';
+
+                try {
+                    const response = await fetch(spinUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    });
+
+                    const payload = await response.json();
+                    if (!response.ok || !payload.success) {
+                        throw new Error(payload.message || 'Impossible de lancer la roulette.');
+                    }
+
+                    const result = payload.result;
+                    const pool = rouletteItems;
+                    const index = Math.max(pool.findIndex((item) => {
+                        const itemId = String(item.id ?? item.key ?? '');
+                        const resultId = String(result.id ?? result.key ?? '');
+                        return itemId !== '' && itemId === resultId;
+                    }), 0);
+                    const spinSlice = 360 / pool.length;
+
+                    // Calcul de la rotation pour que le segment gagnant s'arrête en haut (curseur)
+                    // La rotation initiale est 0. Le curseur est en haut (270 deg en coordonnées trigonométriques standard, ou 0 deg dans notre SVG polarPoint).
+                    // Pour que l'index 'index' soit en haut, on doit faire pivoter la roue de -(index * slice + slice/2)
+                    const targetRotation = 1440 - (index * spinSlice + spinSlice / 2);
+
+                    if (rouletteStage) {
+                        rouletteStage.classList.add('is-spinning');
+                    }
+
+                    rouletteWheel.style.transform = `rotate(${targetRotation}deg)`;
+
+                    // Effet de confettis discret au début du spin
+                    try { if (typeof confetti === 'function') { confetti({
+                        particleCount: 50,
+                        spread: 60,
+                        origin: { y: 0.8 },
+                        colors: ['#ffd36b', '#ff8d3c', '#ffffff']
+                    }); } } catch(e) {}
+
+                    setTimeout(() => {
+                        // Explosion de confettis au moment du gain
+                        const duration = 3 * 1000;
+                        const end = Date.now() + duration;
+
+                        (function frame() {
+                            try { if (typeof confetti === 'function') { confetti({
+                                particleCount: 3,
+                                angle: 60,
+                                spread: 55,
+                                origin: { x: 0 },
+                                colors: ['#ffd36b', '#ff8d3c']
+                            }); } } catch(e) {}
+                            try { if (typeof confetti === 'function') { confetti({
+                                particleCount: 3,
+                                angle: 120,
+                                spread: 55,
+                                origin: { x: 1 },
+                                colors: ['#ffd36b', '#ff8d3c']
+                            }); } } catch(e) {}
+
+                            if (Date.now() < end) {
+                                requestAnimationFrame(frame);
+                            }
+                        }());
+
+                        if (resultCard) {
+                            const image = result.image || '{{ asset('assets/img/favicon.png') }}';
+                            const title = result.titre || result.name || 'Plat surprise';
+                            resultCard.className = 'roulette-result-card mt-4';
+                            resultCard.style.display = 'flex';
+                            resultCard.innerHTML = `
+                                <img src="${image}" alt="Plat gagné">
+                                <div>
+                                    <p class="result-name mb-1">${title}</p>
+                                    <div class="result-meta">Plat gagné avec la roulette premium. Le cadeau est consommé une seule fois.</div>
+                                </div>
+                            `;
+                        }
+
+                        spinButton.innerHTML = '<i class="bi bi-check2-circle me-2"></i> Roulette consommée';
+                        spinButton.disabled = true;
+                        if (winnerModal) {
+                            const winnerTitle = result.titre || result.name || 'Plat surprise';
+                            if (winnerImage) {
+                                winnerImage.src = result.image || '{{ asset('assets/img/favicon.png') }}';
+                            }
+                            if (winnerText) {
+                                winnerText.textContent = `${winnerTitle} est ajoute a une commande totalement gratuite.`;
+                            }
+                            winnerModal.classList.add('is-visible');
+                        }
+
+                        setTimeout(() => {
+                            window.location.href = payload.redirectUrl || '{{ path('app_menu_commande') }}?rouletteGift=1';
+                        }, 2200);
+                    }, 5000);
+                } catch (error) {
+                    spinButton.disabled = false;
+                    spinButton.innerHTML = '<i class="bi bi-lightning-charge-fill me-2"></i>Lancer la roulette';
+                    alert(error.message || 'Une erreur est survenue.');
+                }
+            }
+
+            if (spinButton && rouletteAvailable && !rouletteUsed) {
+                spinButton.addEventListener('click', spinRoulette);
+            }
+        })();
+    </script>
+</body>
+</html>
