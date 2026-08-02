@@ -67,7 +67,7 @@ class MenuFirebaseController extends AbstractController
                 ]);
             }
 
-            $imageUrl = $cloudinary->uploadImage($imageFile->getPathname());
+            $imageUrl = $cloudinary->uploadImage($imageFile);
 
             $data = [
                 'titre' => $titre,
@@ -102,8 +102,7 @@ class MenuFirebaseController extends AbstractController
             $imageUrl = $menu['image']; // Garder l'ancienne image par défaut
             
             if ($imageFile) {
-                $imagePath = $imageFile->getPathname();
-                $imageUrl = $cloudinary->uploadImage($imagePath);
+                $imageUrl = $cloudinary->uploadImage($imageFile);
             }
 
             $price = $request->request->get('price');

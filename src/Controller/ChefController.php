@@ -31,7 +31,7 @@ class ChefController extends AbstractController
             $imageFile = $request->files->get('image');
             $imageUrl = null;
             if ($imageFile) {
-                $imageUrl = $cloudinary->uploadImage($imageFile->getPathname());
+                $imageUrl = $cloudinary->uploadImage($imageFile);
             }
 
             $data = [
@@ -60,7 +60,7 @@ class ChefController extends AbstractController
             $imageUrl = $chef['image'] ?? null;
 
             if ($imageFile) {
-                $imageUrl = $cloudinary->uploadImage($imageFile->getPathname());
+                $imageUrl = $cloudinary->uploadImage($imageFile);
             }
 
             $data = [

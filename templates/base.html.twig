@@ -957,6 +957,9 @@ function showLoginAlert(targetUrl) {
   <script src="{{ asset('assets/vendor/swiper/swiper-bundle.min.js') }}"></script>
 
   <!-- Main JS File -->
+  {% block importmap %}{{ importmap('app') }}{% endblock %}
+
+  <!-- Main JS File -->
   <script src="{{ asset('assets/js/main.js') }}"></script>
 
 

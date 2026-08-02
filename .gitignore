@@ -5,10 +5,42 @@
 !/var/.gitkeep  # Si tu veux garder un dossier vide dans Git
 
 # ⚙️ Fichiers d'environnement locaux (jamais en prod)
+# .env.local
+# .env.*          # Ignore tous sauf .env
+# !.env           # On garde le fichier .env de base (exemple, pas sensible)
+
+# ⚙️ Fichiers d'environnement (en prod)
+.env
 .env.local
-.env.*          # Ignore tous sauf .env
-!.env           # On garde le fichier .env de base (exemple, pas sensible)
+.env.*
 
 # 🛠️ Config IDE (optionnel)
 .idea/
 .vscode/
+
+###> symfony/asset-mapper ###
+/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
+
+# AWS & provisioning credentials - never commit
+# Personal AWS config and credentials (usually in $HOME/.aws) and any
+# local credential files or PEM keys used for provisioning.
+.aws/
+aws_credentials*
+aws-credentials*
+*.pem
+eksctl-*
+kubeconfig
+.kube/
+
+# Secrets applicatifs et fichiers sensibles (jamais commités)
+cookies.txt
+cookies_admin.txt
+app_logs.txt
+nginx_logs.txt
+tmp_debug.php
+iam-policy-ansible-provisioner.json
+
+# Ansible - variables générées (contient mot de passe RDS en clair)
+ansible/generated_vars.yml

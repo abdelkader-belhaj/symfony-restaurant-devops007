@@ -1,0 +1,111 @@
+- name: Provision Jenkins EC2 instance for Symfony project
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - amazon.aws
+  vars_files:
+    - ../group_vars/all.yml
+    - ../generated_vars.yml
+  vars:
+    jenkins_key_name: "{{ project_name }}-jenkins-key"
+    jenkins_key_file: "{{ playbook_dir }}/../keys/jenkins-key.pem"
+    jenkins_instance_name: "jenkins-server"
+    jenkins_instance_type: "t3.micro"
+    jenkins_ami_name_filter: "ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"
+  tasks:
+    - name: Ensure ansible keys directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/../keys"
+        state: directory
+        mode: '0755'
+
+    - name: Create or reuse SSH key pair for Jenkins
+      amazon.aws.ec2_key:
+        name: "{{ jenkins_key_name }}"
+        region: "{{ aws_region }}"
+        file_name: "{{ jenkins_key_file }}"
+        state: present
+        tags: "{{ tag_map | combine({'Name': jenkins_key_name}) }}"
+      register: jenkins_key
+
+    - name: Find Ubuntu 22.04 LTS AMIs in eu-west-1
+      amazon.aws.ec2_ami_info:
+        region: "{{ aws_region }}"
+        owners:
+          - "099720109477"
+        filters:
+          name: "{{ jenkins_ami_name_filter }}"
+          root-device-type: "ebs"
+          virtualization-type: "hvm"
+          architecture: "x86_64"
+          state: "available"
+      register: ubuntu_ami
+
+    - name: Fail if no Ubuntu 22.04 LTS AMI was found
+      ansible.builtin.fail:
+        msg: "No Ubuntu 22.04 LTS AMI found in region {{ aws_region }}."
+      when: ubuntu_ami.images | length == 0
+
+    - name: Select the latest Ubuntu 22.04 AMI
+      ansible.builtin.set_fact:
+        jenkins_ami_id: "{{ (ubuntu_ami.images | sort(attribute='creation_date'))[-1].image_id }}"
+
+    - name: Launch Jenkins EC2 instance
+      amazon.aws.ec2_instance:
+        name: "{{ jenkins_instance_name }}"
+        key_name: "{{ jenkins_key_name }}"
+        image_id: "{{ jenkins_ami_id }}"
+        instance_type: "{{ jenkins_instance_type }}"
+        vpc_subnet_id: "{{ subnet_ids[0] }}"
+        security_group: "{{ security_group_id }}"
+        network:
+          assign_public_ip: true
+        wait: true
+        wait_timeout: 600
+        region: "{{ aws_region }}"
+        tags: "{{ tag_map | combine({'Name': jenkins_instance_name, 'Role': 'jenkins'}) }}"
+        user_data: |
+          #cloud-config
+          packages:
+            - wget
+            - gnupg
+            - lsb-release
+            - ca-certificates
+          runcmd:
+            - apt-get update
+            - apt-get install -y wget gnupg lsb-release ca-certificates
+            - wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | tee /usr/share/keyrings/jenkins-keyring.asc
+            - echo 'deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/' > /etc/apt/sources.list.d/jenkins.list
+            - apt-get update
+            - apt-get install -y openjdk-17-jre-headless docker.io
+            - systemctl enable --now docker
+            - apt-get install -y jenkins
+            - systemctl enable --now jenkins
+      register: jenkins_instance
+
+    - name: Set Jenkins public IP fact
+      ansible.builtin.set_fact:
+        jenkins_public_ip: "{{ jenkins_instance.instances[0].public_ip_address | default(jenkins_instance.instances[0].network_interfaces[0].association.public_ip | default('')) }}"
+
+    - name: Wait for Jenkins HTTP port 8080 to become available
+      ansible.builtin.wait_for:
+        host: "{{ jenkins_public_ip }}"
+        port: 8080
+        state: started
+        timeout: 600
+
+    - name: Append Jenkins public IP to generated_vars.yml
+      ansible.builtin.lineinfile:
+        path: "{{ playbook_dir }}/../generated_vars.yml"
+        regexp: '^jenkins_public_ip:'
+        line: 'jenkins_public_ip: "{{ jenkins_public_ip }}"'
+        create: yes
+        insertafter: EOF
+
+    - name: Show Jenkins access and initial password command
+      ansible.builtin.debug:
+        msg: |
+          Jenkins is available at: http://{{ jenkins_public_ip }}:8080
+          Use this command to read the initial admin password:
+          ssh -i {{ playbook_dir }}/../keys/jenkins-key.pem ubuntu@{{ jenkins_public_ip }} "sudo cat /var/lib/jenkins/secrets/initialAdminPassword"

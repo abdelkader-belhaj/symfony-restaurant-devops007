@@ -1,0 +1,129 @@
+- name: Provision AWS VPC network for Symfony project
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+  tasks:
+    - name: Create VPC
+      amazon.aws.ec2_vpc_net:
+        name: "{{ vpc_name }}"
+        cidr_block: "{{ vpc_cidr }}"
+        region: "{{ aws_region }}"
+        dns_support: true
+        dns_hostnames: true
+        tags: "{{ tag_map | combine({'Name': vpc_name}) }}"
+      register: vpc
+
+    - name: Create public subnets
+      amazon.aws.ec2_vpc_subnet:
+        state: present
+        vpc_id: "{{ vpc.vpc.id }}"
+        cidr: "{{ item.0 }}"
+        az: "{{ item.1 }}"
+        map_public: true
+        region: "{{ aws_region }}"
+        tags: "{{ tag_map | combine({'Name': aws_subnet_name_prefix ~ '-' ~ item.1}) }}"
+      loop: "{{ public_subnet_cidrs | zip(availability_zones) | list }}"
+      loop_control:
+        label: "{{ item.1 }}"
+      register: public_subnets
+
+    - name: Create Internet Gateway and attach to VPC
+      amazon.aws.ec2_vpc_igw:
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        tags: "{{ tag_map | combine({'Name': project_name ~ '-igw'}) }}"
+      register: igw
+
+    - name: Find existing public route table by Name tag
+      amazon.aws.ec2_vpc_route_table_info:
+        filters:
+          "tag:Name": "{{ aws_route_table_name }}"
+          "vpc-id": "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+      register: existing_public_rtb
+
+    - name: Set public_route_table fact from existing table when present
+      ansible.builtin.set_fact:
+        public_route_table: "{{ existing_public_rtb.route_tables[0] }}"
+      when: existing_public_rtb.route_tables is defined and existing_public_rtb.route_tables | length > 0
+
+    - name: Create public route table if not present
+      amazon.aws.ec2_vpc_route_table:
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        tags: "{{ tag_map | combine({'Name': aws_route_table_name}) }}"
+        routes:
+          - dest: 0.0.0.0/0
+            destination_cidr_block: 0.0.0.0/0
+            gateway_id: "{{ igw.internet_gateway_id | default(igw.gateway_id) | default(igw.id) }}"
+        state: present
+      register: created_public_rtb
+      when: public_route_table is not defined
+
+    - name: Ensure public_route_table fact is set (from created result)
+      ansible.builtin.set_fact:
+        public_route_table: "{{ (created_public_rtb | default({})).route_table | default(public_route_table) }}"
+
+    - name: Ensure route table associations and default route are present (idempotent)
+      amazon.aws.ec2_vpc_route_table:
+        vpc_id: "{{ vpc.vpc.id }}"
+        tags: "{{ tag_map | combine({'Name': aws_route_table_name}) }}"
+        region: "{{ aws_region }}"
+        subnets: "{{ public_subnets.results | map(attribute='subnet.id') | list }}"
+        routes:
+          - dest: 0.0.0.0/0
+            destination_cidr_block: 0.0.0.0/0
+            gateway_id: "{{ igw.internet_gateway_id | default(igw.gateway_id) | default(igw.id) }}"
+        state: present
+      when: public_subnets is defined
+
+    - name: Create security group for project
+      amazon.aws.ec2_security_group:
+        name: "{{ aws_security_group_name }}"
+        description: "{{ aws_security_group_description }}"
+        vpc_id: "{{ vpc.vpc.id }}"
+        region: "{{ aws_region }}"
+        state: present
+        tags: "{{ tag_map | combine({'Name': aws_security_group_name}) }}"
+        rules:
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 8080
+            to_port: 8080
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 3306
+            to_port: 3306
+            cidr_ip: "{{ vpc_cidr }}"
+      register: base_security_group
+
+    - name: Set generated network variables
+      ansible.builtin.set_fact:
+        generated_vpc_id: "{{ vpc.vpc.id }}"
+        generated_subnet_ids: "{{ public_subnets.results | map(attribute='subnet.id') | list }}"
+        generated_security_group_id: "{{ base_security_group.group_id }}"
+
+    - name: Write generated_ids to ansible/generated_vars.yml
+      ansible.builtin.copy:
+        dest: "{{ playbook_dir }}/../generated_vars.yml"
+        content: |
+          vpc_id: "{{ generated_vpc_id }}"
+          subnet_ids:
+          {% for subnet_id in generated_subnet_ids %}
+          - "{{ subnet_id }}"
+          {% endfor %}
+          security_group_id: "{{ generated_security_group_id }}"
+        mode: '0644'

@@ -1,0 +1,46 @@
+- name: Provision AWS ECR repository for Symfony Docker images
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - community.aws
+  vars_files:
+    - ../group_vars/all.yml
+  vars:
+    ecr_repository_name: "{{ project_name }}-app"
+  tasks:
+    - name: Create ECR repository
+      community.aws.ecs_ecr:
+        name: "{{ ecr_repository_name }}"
+        state: present
+        region: "{{ aws_region }}"
+        scan_on_push: true
+        lifecycle_policy:
+          rules:
+            - rulePriority: 1
+              description: "Keep last 10 images"
+              selection:
+                tagStatus: any
+                countType: imageCountMoreThan
+                countNumber: 10
+              action:
+                type: expire
+      register: ecr_repo
+
+    - name: Tag ECR repository with project metadata
+      ansible.builtin.command:
+        cmd: >
+          aws ecr tag-resource
+          --resource-arn {{ ecr_repo.repository.repositoryArn }}
+          --tags Key=Project,Value={{ project_name }}
+          --region {{ aws_region }}
+      changed_when: true
+      when: ecr_repo.repository.repositoryArn is defined
+
+    - name: Ensure generated_vars.yml contains ECR repository URI
+      ansible.builtin.lineinfile:
+        path: "{{ playbook_dir }}/../generated_vars.yml"
+        regexp: '^ecr_repository_uri:'
+        line: 'ecr_repository_uri: "{{ ecr_repo.repository.repositoryUri }}"'
+        create: yes
+        insertafter: EOF

@@ -131,7 +131,7 @@
                 {% for key, table in tables %}
                     {% set rStatus = table.reservationStatus|default('pending') %}
                     {% set isPast = (table.date|default('')) < 'now'|date('Y-m-d') %}
-                    <tr class="{% if isPast %}table-secondary{% endif %}" style="cursor:pointer" data-key="{{ key }}" data-url="{{ path('firebase_table_reservation_status', {'key': key}) }}" data-csrf="{{ csrf_token('reservation-status' ~ key) }}" data-name="{{ table.name|default('') }}" data-email="{{ table.email|default('') }}" data-tel="{{ table.tel|default('') }}" data-date="{{ table.date|default('') }}" data-time="{{ table.time|default('') }}" data-people="{{ table.numberPeople|default('0') }}" data-status="{{ rStatus }}" data-message="{{ table.message|default('') }}">
+                    <tr class="{% if isPast %}table-secondary{% endif %}" style="cursor:pointer" data-key="{{ key }}" data-id="{{ table.id|default(key) }}" data-url="{{ path('firebase_table_reservation_status', {'key': table.id|default(key)}) }}" data-csrf="{{ csrf_token('reservation-status' ~ (table.id|default(key))) }}" data-name="{{ table.name|default('') }}" data-email="{{ table.email|default('') }}" data-tel="{{ table.tel|default('') }}" data-date="{{ table.date|default('') }}" data-time="{{ table.time|default('') }}" data-people="{{ table.numberPeople|default('0') }}" data-status="{{ rStatus }}" data-message="{{ table.message|default('') }}">
                         <td class="px-3 py-3">
                             <div class="d-flex align-items-center">
                                 <div class="avatar-circle bg-primary text-white me-2">{{ table.name|slice(0,1)|upper }}</div>
@@ -170,22 +170,22 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li>
-                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-status="pending" data-url="{{ path('firebase_table_reservation_status', {'key': key}) }}" data-csrf="{{ csrf_token('reservation-status' ~ key) }}">
+                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-id="{{ table.id|default(key) }}" data-status="pending" data-url="{{ path('firebase_table_reservation_status', {'key': table.id|default(key)}) }}" data-csrf="{{ csrf_token('reservation-status' ~ (table.id|default(key))) }}">
                                             <i class="fas fa-clock text-warning me-2"></i>En attente
                                         </button>
                                     </li>
                                     <li>
-                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-status="confirmed" data-url="{{ path('firebase_table_reservation_status', {'key': key}) }}" data-csrf="{{ csrf_token('reservation-status' ~ key) }}">
+                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-id="{{ table.id|default(key) }}" data-status="confirmed" data-url="{{ path('firebase_table_reservation_status', {'key': table.id|default(key)}) }}" data-csrf="{{ csrf_token('reservation-status' ~ (table.id|default(key))) }}">
                                             <i class="fas fa-check text-success me-2"></i>Confirmée
                                         </button>
                                     </li>
                                     <li>
-                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-status="cancelled" data-url="{{ path('firebase_table_reservation_status', {'key': key}) }}" data-csrf="{{ csrf_token('reservation-status' ~ key) }}">
+                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-id="{{ table.id|default(key) }}" data-status="cancelled" data-url="{{ path('firebase_table_reservation_status', {'key': table.id|default(key)}) }}" data-csrf="{{ csrf_token('reservation-status' ~ (table.id|default(key))) }}">
                                             <i class="fas fa-times text-danger me-2"></i>Annulée
                                         </button>
                                     </li>
                                     <li>
-                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-status="completed" data-url="{{ path('firebase_table_reservation_status', {'key': key}) }}" data-csrf="{{ csrf_token('reservation-status' ~ key) }}">
+                                        <button class="dropdown-item small change-reservation-status" data-key="{{ key }}" data-id="{{ table.id|default(key) }}" data-status="completed" data-url="{{ path('firebase_table_reservation_status', {'key': table.id|default(key)}) }}" data-csrf="{{ csrf_token('reservation-status' ~ (table.id|default(key))) }}">
                                             <i class="fas fa-flag me-2"></i>Terminée
                                         </button>
                                     </li>
@@ -396,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(currentModalRow.dataset.url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: '_token=' + encodeURIComponent(currentModalRow.dataset.csrf) + '&reservationStatus=' + encodeURIComponent(btn.dataset.status)
+                body: '_token=' + encodeURIComponent(currentModalRow.dataset.csrf) + '&reservationStatus=' + encodeURIComponent(btn.dataset.status) + '&reservationId=' + encodeURIComponent(currentModalRow.dataset.id || currentModalRow.dataset.key)
             })
             .then(function(response) {
                 return response.json().then(function(data) {
@@ -452,7 +452,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fetch(btn.dataset.url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: '_token=' + encodeURIComponent(btn.dataset.csrf) + '&reservationStatus=' + encodeURIComponent(btn.dataset.status)
+                body: '_token=' + encodeURIComponent(btn.dataset.csrf) + '&reservationStatus=' + encodeURIComponent(btn.dataset.status) + '&reservationId=' + encodeURIComponent(btn.dataset.id || btn.dataset.key)
             })
             .then(function(response) {
                 return response.json().then(function(data) {

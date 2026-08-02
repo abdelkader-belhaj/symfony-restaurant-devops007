@@ -1,0 +1,137 @@
+- name: Install Jenkins and Docker on Jenkins host
+  hosts: jenkins
+  become: true
+  gather_facts: true
+  vars:
+    jenkins_apt_repo: 'deb https://pkg.jenkins.io/debian-stable binary/'
+    jenkins_key_url: 'https://pkg.jenkins.io/debian-stable/jenkins.io.key'
+  tasks:
+    - name: Cleanup any existing Jenkins apt entries and keyrings
+      ansible.builtin.shell: |
+        set -e
+        rm -f /etc/apt/sources.list.d/*jenkins* /usr/share/keyrings/jenkins-keyring.* || true
+
+    - name: Remove legacy Jenkins apt source file if present (avoid Signed-By conflict)
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/jenkins.list
+        state: absent
+
+    - name: Remove legacy Jenkins keyring.asc if present
+      ansible.builtin.file:
+        path: /usr/share/keyrings/jenkins-keyring.asc
+        state: absent
+
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - wget
+          - gnupg
+          - lsb-release
+          - apt-transport-https
+        state: present
+        update_cache: no
+
+    - name: Download Jenkins GPG key and install to keyring
+      ansible.builtin.shell: |
+        set -e
+        curl -fsSL {{ jenkins_key_url }} | gpg --dearmor > /usr/share/keyrings/jenkins-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/jenkins-keyring.gpg
+
+    - name: Remove legacy Jenkins apt source file if present (avoid Signed-By conflict)
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/jenkins.list
+        state: absent
+
+    - name: Remove legacy Jenkins keyring.asc if present
+      ansible.builtin.file:
+        path: /usr/share/keyrings/jenkins-keyring.asc
+        state: absent
+
+    - name: Add Jenkins apt repository (temporarily trust repo to avoid pubkey issues)
+      ansible.builtin.apt_repository:
+        repo: "deb [trusted=yes] https://pkg.jenkins.io/debian-stable binary/"
+        state: present
+
+    - name: Update apt cache after adding Jenkins repo
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install OpenJDK 17, Docker and Jenkins
+      ansible.builtin.apt:
+        name:
+          - openjdk-17-jre-headless
+          - docker.io
+          - jenkins
+        state: present
+        update_cache: yes
+
+    - name: Ensure jenkins user is in docker group
+      ansible.builtin.user:
+        name: jenkins
+        groups: docker
+        append: yes
+
+    - name: Add Adoptium (Temurin) apt key and repo for Java 21
+      ansible.builtin.shell: |
+        set -e
+        curl -fsSL https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor > /usr/share/keyrings/adoptium.gpg
+      args:
+        creates: /usr/share/keyrings/adoptium.gpg
+
+    - name: Add Adoptium apt repository
+      ansible.builtin.copy:
+        dest: /etc/apt/sources.list.d/adoptium.list
+        content: 'deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb jammy main'
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Update apt after adding Adoptium repo
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install Temurin 21 JRE
+      ansible.builtin.apt:
+        name: temurin-21-jre
+        state: present
+        update_cache: yes
+
+    - name: Create systemd override directory for Jenkins
+      ansible.builtin.file:
+        path: /etc/systemd/system/jenkins.service.d
+        state: directory
+        mode: '0755'
+
+    - name: Create systemd override to set Jenkins Java command to Temurin 21
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/jenkins.service.d/override.conf
+        content: |
+          [Service]
+          Environment="JENKINS_JAVA_CMD=/usr/lib/jvm/temurin-21-jre/bin/java"
+          Environment="JAVA_HOME=/usr/lib/jvm/temurin-21-jre"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload systemd to pick up Jenkins override
+      ansible.builtin.shell: systemctl daemon-reload
+
+    - name: Enable and start docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Enable and start jenkins
+      ansible.builtin.service:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    - name: Wait for Jenkins HTTP to be available
+      ansible.builtin.wait_for:
+        port: 8080
+        host: "{{ inventory_hostname }}"
+        state: started
+        timeout: 180

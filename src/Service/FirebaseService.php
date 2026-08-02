@@ -196,9 +196,15 @@ class FirebaseService
             ->setTime(isset($data['time']) && $data['time'] !== '' ? $this->normalizeTime((string) $data['time']) : ($table->getTime() ?? $this->normalizeTime('now')))
             ->setNumberPeople((int) ($data['numberPeople'] ?? $data['people'] ?? $table->getNumberPeople() ?? 0))
             ->setMessage((string) ($data['message'] ?? $table->getMessage() ?? ''))
-            ->setStatus((string) ($data['status'] ?? $table->getStatus() ?? 'available'))
-            ->setReservationStatus((string) ($data['reservationStatus'] ?? $table->getReservationStatus() ?? 'pending'))
-            ->setCapacity((int) ($data['capacity'] ?? $table->getCapacity() ?? 2));
+            ->setStatus((string) ($data['status'] ?? $table->getStatus() ?? 'available'));
+
+        $reservationStatus = $data['reservationStatus'] ?? $data['reservation_status'] ?? $table->getReservationStatus() ?? 'pending';
+        if (!in_array($reservationStatus, ['pending', 'confirmed', 'cancelled', 'completed', 'reserved'], true)) {
+            $reservationStatus = 'pending';
+        }
+        $table->setReservationStatus((string) $reservationStatus);
+
+        $table->setCapacity((int) ($data['capacity'] ?? $table->getCapacity() ?? 2));
 
         if (array_key_exists('reservation', $data)) {
             $table->setReservation(is_array($data['reservation']) ? $data['reservation'] : null);
@@ -522,7 +528,12 @@ class FirebaseService
 
         shuffle($menus);
 
-        return array_slice($menus, 0, min($limit, count($menus)));
+        return array_map(
+            fn(array $menu): array => array_merge($menu, [
+                'image' => $this->normalizeImageUrl($menu['image'] ?? null),
+            ]),
+            array_slice($menus, 0, min($limit, count($menus)))
+        );
     }
 
     public function resolveRoulettePool(SessionInterface $session, int $limit = 6): array
@@ -586,6 +597,11 @@ class FirebaseService
 
     public function createUser(array $data): void
     {
+        $rouletteGift = is_array($data['rouletteGift'] ?? null) ? $data['rouletteGift'] : null;
+        if (is_array($rouletteGift)) {
+            $rouletteGift['image'] = $this->normalizeImageUrl($rouletteGift['image'] ?? null);
+        }
+
         $user = (new User())
             ->setNomComplete((string) ($data['nomComplete'] ?? ''))
             ->setTel((int) ($data['tel'] ?? 0))
@@ -594,7 +610,7 @@ class FirebaseService
             ->setType((string) ($data['type'] ?? 'client'))
             ->setProvider((string) ($data['provider'] ?? 'local'))
             ->setRouletteUsed((bool) ($data['rouletteUsed'] ?? false))
-            ->setRouletteGift(is_array($data['rouletteGift'] ?? null) ? $data['rouletteGift'] : null)
+            ->setRouletteGift($rouletteGift)
             ->setDiscountActive((bool) ($data['discountActive'] ?? false))
             ->setDiscountUsed((bool) ($data['discountUsed'] ?? false))
             ->setPoints((int) ($data['points'] ?? 0));
@@ -681,7 +697,11 @@ class FirebaseService
         }
 
         if (array_key_exists('rouletteGift', $data)) {
-            $user->setRouletteGift(is_array($data['rouletteGift']) ? $data['rouletteGift'] : null);
+            $rouletteGift = is_array($data['rouletteGift']) ? $data['rouletteGift'] : null;
+            if (is_array($rouletteGift)) {
+                $rouletteGift['image'] = $this->normalizeImageUrl($rouletteGift['image'] ?? null);
+            }
+            $user->setRouletteGift($rouletteGift);
         }
 
         if (array_key_exists('discountActive', $data)) {
@@ -783,7 +803,7 @@ class FirebaseService
             'title' => $menu->getTitre(),
             'name' => $menu->getTitre(),
             'description' => $menu->getDescription(),
-            'image' => $menu->getImage(),
+            'image' => $this->normalizeImageUrl($menu->getImage()),
             'type' => $menu->getType(),
             'price' => $menu->getPrice(),
         ];
@@ -804,6 +824,11 @@ class FirebaseService
 
     private function tableToArray(Table $table): array
     {
+        $reservationStatus = $table->getReservationStatus() ?? 'pending';
+        if (!in_array($reservationStatus, ['pending', 'confirmed', 'cancelled', 'completed', 'reserved'], true)) {
+            $reservationStatus = 'pending';
+        }
+
         return [
             'key' => (string) $table->getId(),
             'id' => $table->getId(),
@@ -817,7 +842,7 @@ class FirebaseService
             'persons' => $table->getNumberPeople(),
             'message' => $table->getMessage(),
             'status' => $table->getStatus() ?? 'available',
-            'reservationStatus' => $table->getReservationStatus() ?? 'pending',
+            'reservationStatus' => $reservationStatus,
             'capacity' => $table->getCapacity() ?? 2,
             'reservation' => $table->getReservation(),
         ];
@@ -919,12 +944,45 @@ class FirebaseService
             'googleId' => $user->getGoogleId(),
             'provider' => $user->getProvider(),
             'rouletteUsed' => (bool) $user->isRouletteUsed(),
-            'rouletteGift' => $user->getRouletteGift(),
+            'rouletteGift' => $this->normalizeRouletteGift($user->getRouletteGift()),
             'discountActive' => (bool) $user->isDiscountActive(),
             'discountUsed' => (bool) $user->isDiscountUsed(),
             'notifications' => $user->getNotifications() ?? [],
             'points' => $user->getPoints() ?? 0,
         ];
+    }
+
+    private function normalizeImageUrl(?string $value): string
+    {
+        $normalized = trim((string) ($value ?? ''));
+
+        if ($normalized === '') {
+            return '';
+        }
+
+        if (str_starts_with($normalized, 'http://') || str_starts_with($normalized, 'https://')) {
+            return $normalized;
+        }
+
+        if (str_starts_with($normalized, '/')) {
+            return $normalized;
+        }
+
+        return '/' . ltrim($normalized, '/');
+    }
+
+    private function normalizeRouletteGift(?array $value): ?array
+    {
+        if (!is_array($value)) {
+            return null;
+        }
+
+        $normalized = $value;
+        if (isset($normalized['image'])) {
+            $normalized['image'] = $this->normalizeImageUrl((string) $normalized['image']);
+        }
+
+        return $normalized;
     }
 
     private function normalizeDate(string $value): DateTime

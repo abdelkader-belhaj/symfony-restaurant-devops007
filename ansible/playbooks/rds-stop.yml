@@ -1,0 +1,30 @@
+- name: Stop AWS RDS instance without waiting for full shutdown
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - amazon.aws
+  vars_files:
+    - ../group_vars/all.yml
+    - ../generated_vars.yml
+  tasks:
+    - name: Require db_instance_identifier
+      ansible.builtin.assert:
+        that:
+          - db_instance_identifier is defined
+        fail_msg: "db_instance_identifier must be defined in ansible/generated_vars.yml"
+
+    - name: Stop the RDS instance
+      amazon.aws.rds_instance:
+        db_instance_identifier: "{{ db_instance_identifier }}"
+        state: stopped
+        wait: false
+        region: "{{ aws_region }}"
+      register: rds_stop_result
+
+    - name: Confirm RDS stop request was sent
+      ansible.builtin.debug:
+        msg: |
+          RDS stop request sent for instance {{ db_instance_identifier }}.
+          Vérifie son état plus tard avec :
+          aws rds describe-db-instances --db-instance-identifier {{ db_instance_identifier }} --region {{ aws_region }} --query 'DBInstances[0].DBInstanceStatus' --output text

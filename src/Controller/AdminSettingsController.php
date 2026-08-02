@@ -57,28 +57,7 @@ final class AdminSettingsController extends AbstractController
             $profileUser['notifications'] = $notifications;
         }
 
-        $reservations = [];
-        foreach ($firebaseService->getAllTables() as $id => $table) {
-            $emailMatches = isset($table['email']) && isset($profileUser['email'])
-                && mb_strtolower(trim((string) $table['email'])) === mb_strtolower(trim((string) $profileUser['email']));
-
-            if ($emailMatches) {
-                $reservations[] = [
-                    'id' => (string) $id,
-                    'name' => $table['name'] ?? ($profileUser['nomComplete'] ?? 'Client'),
-                    'date' => $table['date'] ?? null,
-                    'time' => $table['time'] ?? null,
-                    'people' => $table['numberPeople'] ?? $table['persons'] ?? 0,
-                    'status' => $table['status'] ?? 'pending',
-                    'reservationStatus' => $table['reservationStatus'] ?? 'pending',
-                    'message' => $table['message'] ?? '',
-                ];
-            }
-        }
-
-        usort($reservations, static function (array $left, array $right): int {
-            return strcmp((string) ($right['date'] ?? ''), (string) ($left['date'] ?? ''));
-        });
+        $reservations = $this->buildUserReservations($profileUser, $firebaseService);
 
         if ($request->isMethod('POST') && ($profileUser['type'] ?? 'client') === 'client') {
             $nomComplete = trim((string) $request->request->get('nomComplete'));
@@ -144,6 +123,60 @@ final class AdminSettingsController extends AbstractController
         return $this->render('admin/profile.html.twig', [
             'user' => $profileUser,
         ]);
+    }
+
+    #[Route('/profile/reservations-data', name: 'user_profile_reservations_data', methods: ['GET'])]
+    public function reservationsData(Request $request, FirebaseService $firebaseService): JsonResponse
+    {
+        $user = $request->getSession()->get('user');
+        if (!$user) {
+            return $this->json([], 401);
+        }
+
+        $profileUser = $user;
+        if (!empty($user['id'])) {
+            $storedUser = $firebaseService->getUser((string) $user['id']);
+            if ($storedUser) {
+                $profileUser = array_merge($profileUser, $storedUser);
+            }
+        }
+
+        return $this->json([
+            'reservations' => $this->buildUserReservations($profileUser, $firebaseService),
+        ]);
+    }
+
+    private function buildUserReservations(array $profileUser, FirebaseService $firebaseService): array
+    {
+        $reservations = [];
+        foreach ($firebaseService->getAllTables() as $id => $table) {
+            $emailMatches = isset($table['email']) && isset($profileUser['email'])
+                && mb_strtolower(trim((string) $table['email'])) === mb_strtolower(trim((string) $profileUser['email']));
+
+            if ($emailMatches) {
+                $reservationStatus = (string) ($table['reservationStatus'] ?? $table['reservation_status'] ?? $table['status'] ?? 'pending');
+                $resolvedStatus = in_array($reservationStatus, ['pending', 'confirmed', 'cancelled', 'completed', 'reserved'], true)
+                    ? $reservationStatus
+                    : 'pending';
+
+                $reservations[] = [
+                    'id' => (string) $id,
+                    'name' => $table['name'] ?? ($profileUser['nomComplete'] ?? 'Client'),
+                    'date' => $table['date'] ?? null,
+                    'time' => $table['time'] ?? null,
+                    'people' => $table['numberPeople'] ?? $table['persons'] ?? 0,
+                    'status' => $table['status'] ?? 'pending',
+                    'reservationStatus' => $resolvedStatus,
+                    'message' => $table['message'] ?? '',
+                ];
+            }
+        }
+
+        usort($reservations, static function (array $left, array $right): int {
+            return strcmp((string) ($right['date'] ?? ''), (string) ($left['date'] ?? ''));
+        });
+
+        return $reservations;
     }
 
     #[Route('/cadeaux', name: 'user_rewards', methods: ['GET', 'POST'])]

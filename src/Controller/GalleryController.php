@@ -34,7 +34,7 @@ class GalleryController extends AbstractController
             $imageUrl = null;
 
             if ($imageFile) {
-                $imageUrl = $cloudinary->uploadImage($imageFile->getPathname());
+                $imageUrl = $cloudinary->uploadImage($imageFile);
             }
 
             $this->firebase->createGallery([
@@ -74,7 +74,7 @@ class GalleryController extends AbstractController
             $imageUrl = $gallery['image'] ?? null;
 
             if ($imageFile) {
-                $imageUrl = $cloudinary->uploadImage($imageFile->getPathname());
+                $imageUrl = $cloudinary->uploadImage($imageFile);
             }
 
             $this->firebase->updateGallery($key, ['image' => $imageUrl]);

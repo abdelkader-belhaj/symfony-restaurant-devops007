@@ -1,0 +1,62 @@
+- name: Create or ensure ephemeral EKS cluster for Symfony project
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+    - ../generated_vars.yml
+  vars:
+    eks_cluster_name: symfony-restaurant-cluster
+    eks_node_type: t3.small
+    eks_nodes: 2
+    eks_namespace: symfony-restaurant
+  tasks:
+    - name: Check if EKS cluster already exists
+      ansible.builtin.shell: |
+        eksctl get cluster --region {{ aws_region }} | grep -w {{ eks_cluster_name }} || true
+      register: eks_get
+      changed_when: false
+
+    - name: Create EKS cluster if absent
+      ansible.builtin.shell: |
+        eksctl create cluster \
+          --name {{ eks_cluster_name }} \
+          --region {{ aws_region }} \
+          --vpc-public-subnets={{ subnet_ids | join(',') }} \
+          --nodegroup-name workers \
+          --node-type {{ eks_node_type }} \
+          --nodes {{ eks_nodes }} \
+          --nodes-min {{ eks_nodes }} \
+          --nodes-max {{ eks_nodes }} \
+          --managed
+      when: eks_get.stdout == ''
+      register: eks_create_result
+
+    - name: Ensure kubeconfig is updated (eksctl does this on create)
+      ansible.builtin.shell: |
+        eksctl utils write-kubeconfig --cluster={{ eks_cluster_name }} --region {{ aws_region }} || true
+      register: kubeconfig_update
+      changed_when: false
+
+    - name: Wait for nodes to become Ready (2 nodes expected)
+      ansible.builtin.shell: |
+        kubectl get nodes --no-headers 2>/dev/null | awk '{print $2}' | grep -c Ready || true
+      register: nodes_ready_count
+      retries: 40
+      delay: 15
+      until: nodes_ready_count.stdout | int >= eks_nodes
+
+    - name: Create project namespace if missing
+      ansible.builtin.shell: |
+        kubectl get namespace {{ eks_namespace }} >/dev/null 2>&1 || kubectl create namespace {{ eks_namespace }}
+      register: namespace_create
+      changed_when: namespace_create.rc == 0 and 'created' in namespace_create.stdout
+
+    - name: Show EKS cluster summary
+      ansible.builtin.debug:
+        msg: |
+          Cluster: {{ eks_cluster_name }} (region {{ aws_region }})
+          Nodes expected: {{ eks_nodes }}
+          Nodes Ready (current): {{ nodes_ready_count.stdout | default('0') }}
+          Namespace: {{ eks_namespace }}
+          Cost estimate (approx): control plane ~0.10$/h + {{ eks_nodes }}x {{ eks_node_type }} (~0.04$/h total for 2x t3.small) = ~0.14$/h

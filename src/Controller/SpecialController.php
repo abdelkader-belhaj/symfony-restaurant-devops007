@@ -34,8 +34,7 @@ class SpecialController extends AbstractController
             $imageFile = $request->files->get('image');
             $imageUrl = null;
             if ($imageFile) {
-                $imagePath = $imageFile->getPathname();
-                $imageUrl = $cloudinary->uploadImage($imagePath);
+                $imageUrl = $cloudinary->uploadImage($imageFile);
             }
             $data = [
                 'title' => $request->request->get('title'),
@@ -73,8 +72,7 @@ class SpecialController extends AbstractController
             $imageFile = $request->files->get('image');
             $imageUrl = $special['image'] ?? null;
             if ($imageFile) {
-                $imagePath = $imageFile->getPathname();
-                $imageUrl = $cloudinary->uploadImage($imagePath);
+                $imageUrl = $cloudinary->uploadImage($imageFile);
             }
             $data = [
                 'title' => $request->request->get('title'),

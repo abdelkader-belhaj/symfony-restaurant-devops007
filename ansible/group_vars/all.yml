@@ -1,0 +1,21 @@
+aws_region: eu-west-1
+project_name: symfony-restaurant
+vpc_name: "{{ project_name }}-vpc"
+vpc_cidr: "10.0.0.0/16"
+public_subnet_cidrs:
+  - "10.0.1.0/24"
+  - "10.0.2.0/24"
+availability_zones:
+  - eu-west-1a
+  - eu-west-1b
+tag_map:
+  Project: "symfony-restaurant"
+  Environment: "production"
+  ManagedBy: "ansible"
+  Role: "network"
+aws_vpc_name_tag: "{{ vpc_name }}"
+aws_vpc_tags: "{{ tag_map }}"
+aws_subnet_name_prefix: "{{ project_name }}-public-subnet"
+aws_route_table_name: "{{ project_name }}-public-rt"
+aws_security_group_name: "{{ project_name }}-base-sg"
+aws_security_group_description: "Security group for Symfony project allowing SSH/HTTP/HTTPS/Jenkins and internal MySQL"

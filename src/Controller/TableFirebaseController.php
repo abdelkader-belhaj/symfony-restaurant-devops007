@@ -47,8 +47,8 @@ class TableFirebaseController extends AbstractController
             });
         }
 
-        // Trier par date
-        usort($tables, function ($a, $b) {
+        // Trier par date tout en conservant les clés d'identifiant des réservations
+        uasort($tables, function ($a, $b) {
             $dateA = $a['date'] ?? '0000-00-00';
             $dateB = $b['date'] ?? '0000-00-00';
             return strcmp($dateB, $dateA); // Plus récent en premier
@@ -209,8 +209,9 @@ class TableFirebaseController extends AbstractController
     #[Route('/{key}/reservation-status', name: 'firebase_table_reservation_status', methods: ['POST'])]
     public function updateReservationStatus(string $key, Request $request): Response
     {
+        $reservationId = (string) ($request->request->get('reservationId') ?: $key);
         $submittedToken = $request->request->get('_token');
-        if (!$this->isCsrfTokenValid('reservation-status' . $key, $submittedToken)) {
+        if (!$this->isCsrfTokenValid('reservation-status' . $reservationId, $submittedToken)) {
             return $this->json(['success' => false, 'message' => 'Token CSRF invalide.'], 403);
         }
 
@@ -220,11 +221,13 @@ class TableFirebaseController extends AbstractController
             return $this->json(['success' => false, 'message' => 'Statut de réservation invalide.'], 400);
         }
 
-        $table = $this->firebase->getTable($key);
-        if (!$table) {
+        $resolved = $this->resolveReservation($reservationId, $request);
+        if (!$resolved) {
             return $this->json(['success' => false, 'message' => 'Réservation non trouvée.'], 404);
         }
 
+        $table = $resolved['table'];
+        $tableId = $resolved['id'];
         $currentStatus = $table['reservationStatus'] ?? 'pending';
 
         if ($currentStatus === $newStatus) {
@@ -232,6 +235,11 @@ class TableFirebaseController extends AbstractController
         }
 
         $table['reservationStatus'] = $newStatus;
+        $table['status'] = match ($newStatus) {
+            'confirmed', 'reserved' => 'reserved',
+            'cancelled', 'completed' => 'available',
+            default => 'available',
+        };
 
         if ($newStatus === 'cancelled' || $newStatus === 'completed') {
             $table['status'] = 'available';
@@ -241,7 +249,7 @@ class TableFirebaseController extends AbstractController
             $table['status'] = 'available';
         }
 
-        $this->firebase->updateTable($key, $table);
+        $this->firebase->updateTable($tableId, $table);
 
         $statusLabels = [
             'pending' => 'En attente',
@@ -261,7 +269,7 @@ class TableFirebaseController extends AbstractController
                 'status' => $newStatus,
                 'date' => (new \DateTime())->format('Y-m-d H:i:s'),
                 'read' => false,
-                'reservationKey' => $key
+                'reservationKey' => $tableId
             ]);
         }
 
@@ -270,6 +278,33 @@ class TableFirebaseController extends AbstractController
             'message' => 'Statut changé à "' . $statusLabel . '" avec succès.',
             'newStatus' => $newStatus
         ]);
+    }
+
+    private function resolveReservation(string $requestedId, Request $request): ?array
+    {
+        $candidates = array_values(array_filter([
+            $requestedId,
+            $request->request->get('reservationId'),
+            $request->request->get('tableId'),
+            $request->request->get('id'),
+        ], static function ($value): bool {
+            return $value !== null && $value !== '';
+        }));
+
+        foreach ($candidates as $candidate) {
+            $table = $this->firebase->getTable((string) $candidate);
+            if ($table) {
+                return ['id' => (string) $candidate, 'table' => $table];
+            }
+        }
+
+        foreach ($this->firebase->getAllTables() as $id => $table) {
+            if ((string) $id === $requestedId || (string) ($table['id'] ?? '') === $requestedId || (string) ($table['key'] ?? '') === $requestedId) {
+                return ['id' => (string) $id, 'table' => $table];
+            }
+        }
+
+        return null;
     }
 
     #[Route('/{tableId}/cancel', name: 'client_cancel_reservation', methods: ['POST'])]

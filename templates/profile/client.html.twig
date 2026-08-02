@@ -545,12 +545,12 @@
                                         {% elseif resStatus == 'completed' %}
                                             {% set borderColor = '#6c757d' %}
                                         {% endif %}
-                                        <div class="reservation-item mb-3 p-3 rounded-3" style="background: rgba(255,255,255,0.03); border-left: 4px solid {{ borderColor }}; transition: background 0.2s;">
+                                        <div class="reservation-item mb-3 p-3 rounded-3" data-reservation-id="{{ reservation.id }}" style="background: rgba(255,255,255,0.03); border-left: 4px solid {{ borderColor }}; transition: background 0.2s;">
                                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                                                 <div class="flex-fill">
                                                     <div class="d-flex align-items-center gap-2 mb-1">
                                                         <h4 class="h6 mb-0 fw-bold" style="color: var(--primary);">Table pour {{ reservation.people|default(0) }} personnes</h4>
-                                                        <span class="badge rounded-pill" style="background: {{ borderColor }}; color: #fff; font-size: 0.65rem;">{{ resStatus == 'pending' ? 'En attente' : resStatus == 'confirmed' or resStatus == 'reserved' ? 'Confirmée' : resStatus == 'cancelled' ? 'Annulée' : resStatus == 'completed' ? 'Terminée' : resStatus }}</span>
+                                                        <span class="badge rounded-pill" data-reservation-status-badge style="background: {{ borderColor }}; color: #fff; font-size: 0.65rem;">{{ resStatus == 'pending' ? 'En attente' : resStatus == 'confirmed' or resStatus == 'reserved' ? 'Confirmée' : resStatus == 'cancelled' ? 'Annulée' : resStatus == 'completed' ? 'Terminée' : resStatus }}</span>
                                                     </div>
                                                     <p class="mb-1 small" style="color: #fff; opacity: 0.9;">
                                                         <i class="bi bi-calendar3 me-1"></i><strong>{{ reservation.date|default('N/A') }}</strong> à {{ reservation.time|default('N/A') }}
@@ -634,6 +634,75 @@
                 });
             }
 
+            const reservationContainer = document.querySelector('.reservation-scroll');
+            if (reservationContainer) {
+                const statusLabels = {
+                    pending: 'En attente',
+                    confirmed: 'Confirmée',
+                    reserved: 'Confirmée',
+                    cancelled: 'Annulée',
+                    completed: 'Terminée'
+                };
+                const statusColors = {
+                    pending: '#ffc107',
+                    confirmed: '#28a745',
+                    reserved: '#28a745',
+                    cancelled: '#dc3545',
+                    completed: '#6c757d'
+                };
+
+                const renderReservations = function (reservations) {
+                    if (!reservations || reservations.length === 0) {
+                        reservationContainer.innerHTML = '<div class="text-center py-5"><div class="avatar-circle mx-auto mb-3" style="width: 70px; height: 70px; background: rgba(255,255,255,0.05); color: var(--primary);"><i class="bi bi-calendar-x fs-1"></i></div><p class="text-white opacity-75 mb-1 fw-semibold">Vous n\'avez pas encore de réservation</p><p class="text-muted small mb-3">Réservez votre première table en quelques clics</p><a href="{{ path('front_index') }}#book-a-table" class="btn-gold py-2 px-4" style="font-size: 0.8rem;"><i class="bi bi-plus-lg me-1"></i> Réserver maintenant</a></div>';
+                        return;
+                    }
+
+                    const html = reservations.map(function (reservation) {
+                        const status = reservation.reservationStatus || reservation.status || 'pending';
+                        const label = statusLabels[status] || status;
+                        const color = statusColors[status] || '#ffc107';
+                        const today = new Date().toISOString().slice(0, 10);
+                        const canCancel = status === 'pending' && reservation.date >= today;
+                        const cancelButton = canCancel ? '<form method="post" action="{{ path('client_cancel_reservation', {'tableId': '__ID__'}) }}" class="d-inline" onsubmit="return confirm(\'Êtes-vous sûr de vouloir annuler cette réservation ?\');"><input type="hidden" name="_token" value="{{ csrf_token('cancel-reservation' ~ '__ID__') }}"><button type="submit" class="btn btn-sm btn-outline-danger mt-1" style="font-size: 0.7rem; padding: 5px 14px;"><i class="bi bi-x-circle me-1"></i>Annuler</button></form>'.replace(/__ID__/g, reservation.id) : '';
+
+                        return '<div class="reservation-item mb-3 p-3 rounded-3" style="background: rgba(255,255,255,0.03); border-left: 4px solid ' + color + '; transition: background 0.2s;">' +
+                            '<div class="d-flex justify-content-between align-items-start flex-wrap gap-3">' +
+                            '<div class="flex-fill">' +
+                            '<div class="d-flex align-items-center gap-2 mb-1">' +
+                            '<h4 class="h6 mb-0 fw-bold" style="color: var(--primary);">Table pour ' + (reservation.people || 0) + ' personnes</h4>' +
+                            '<span class="badge rounded-pill" style="background: ' + color + '; color: #fff; font-size: 0.65rem;">' + label + '</span>' +
+                            '</div>' +
+                            '<p class="mb-1 small" style="color: #fff; opacity: 0.9;"><i class="bi bi-calendar3 me-1"></i><strong>' + (reservation.date || 'N/A') + '</strong> à ' + (reservation.time || 'N/A') + '</p>' +
+                            (reservation.message ? '<p class="mb-0 small" style="color: #fff; opacity: 0.7;"><i class="bi bi-chat me-1"></i>' + reservation.message + '</p>' : '') +
+                            '<p class="mb-0 mt-1 small" style="color: #fff; opacity: 0.5;"><i class="bi bi-hash me-1"></i>Réf: #' + String(reservation.id).slice(0, 6).toUpperCase() + '</p>' +
+                            '</div>' +
+                            '<div class="text-end">' + cancelButton + '</div>' +
+                            '</div>' +
+                            '</div>';
+                    }).join('');
+
+                    reservationContainer.innerHTML = html;
+                };
+
+                const refreshReservationStatuses = function () {
+                    fetch('{{ path('user_profile_reservations_data') }}', { cache: 'no-store' })
+                        .then(function (response) {
+                            if (!response.ok) {
+                                throw new Error('Impossible de charger les statuts');
+                            }
+                            return response.json();
+                        })
+                        .then(function (data) {
+                            renderReservations(data.reservations || []);
+                        })
+                        .catch(function () {
+                            // Ignore silently to avoid disrupting the profile page.
+                        });
+                };
+
+                refreshReservationStatuses();
+                setInterval(refreshReservationStatuses, 10000);
+            }
 
         })();
     </script>

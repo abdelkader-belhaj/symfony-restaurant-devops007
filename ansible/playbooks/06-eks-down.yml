@@ -1,0 +1,37 @@
+- name: Destroy ephemeral EKS cluster for Symfony project
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+    - ../generated_vars.yml
+  vars:
+    eks_cluster_name: symfony-restaurant-cluster
+    eks_namespace: symfony-restaurant
+  tasks:
+    - name: Check if EKS cluster exists
+      ansible.builtin.shell: |
+        eksctl get cluster --region {{ aws_region }} | grep -w {{ eks_cluster_name }} || true
+      register: eks_get
+      changed_when: false
+
+    - name: Delete EKS cluster if present
+      ansible.builtin.shell: |
+        eksctl delete cluster --name {{ eks_cluster_name }} --region {{ aws_region }}
+      when: eks_get.stdout != ''
+      register: eks_delete_result
+
+    - name: Confirm cluster no longer exists
+      ansible.builtin.shell: |
+        eksctl get cluster --region {{ aws_region }} | grep -w {{ eks_cluster_name }} || true
+      register: eks_get_after
+      retries: 20
+      delay: 15
+      until: eks_get_after.stdout == ''
+
+    - name: Show deletion confirmation
+      ansible.builtin.debug:
+        msg: |
+          Cluster {{ eks_cluster_name }} deletion requested.
+          Verify with: eksctl get cluster --region {{ aws_region }}
+          If the cluster no longer appears, control plane and nodegroups are deleted and EKS billing has stopped for that cluster.

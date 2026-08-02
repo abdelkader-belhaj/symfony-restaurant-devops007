@@ -1,0 +1,106 @@
+- name: Provision AWS RDS MySQL instance for Symfony project
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - amazon.aws
+  vars_files:
+    - ../group_vars/all.yml
+    - ../generated_vars.yml
+  vars:
+    rds_subnet_group_name: "{{ project_name }}-rds-subnet-group"
+    rds_db_name: symfresto07
+    rds_db_user: app
+    rds_db_instance_identifier_default: symfresto07-db-instance
+  tasks:
+    - name: Ensure RDS password is defined
+      ansible.builtin.set_fact:
+        db_master_password: "{{ db_master_password | default(lookup('password', 'length=24 chars=ascii_letters,digits')) }}"
+
+    - name: Set db_instance_identifier if absent
+      ansible.builtin.set_fact:
+        db_instance_identifier: "{{ db_instance_identifier | default(rds_db_instance_identifier_default) }}"
+
+    - name: Create or update RDS DB subnet group
+      amazon.aws.rds_subnet_group:
+        name: "{{ rds_subnet_group_name }}"
+        description: "RDS subnet group for Symfony MySQL instance"
+        subnets: "{{ subnet_ids }}"
+        state: present
+        region: "{{ aws_region }}"
+
+    - name: Ensure security group allows MySQL from internal VPC CIDR
+      amazon.aws.ec2_group:
+        name: "{{ aws_security_group_name }}"
+        description: "Security group for Symfony RDS MySQL internal access"
+        state: present
+        region: "{{ aws_region }}"
+        rules:
+          - proto: tcp
+            from_port: 3306
+            to_port: 3306
+            cidr_ip: 10.0.0.0/16
+        rules_egress: []
+        purge_rules: false
+        purge_rules_egress: false
+        group_id: "{{ security_group_id }}"
+
+    - name: Provision the RDS MySQL instance
+      amazon.aws.rds_instance:
+        db_instance_identifier: "{{ db_instance_identifier }}"
+        engine: mysql
+        engine_version: 8.0
+        db_instance_class: db.t3.micro
+        allocated_storage: 20
+        master_username: "{{ rds_db_user }}"
+        master_user_password: "{{ db_master_password }}"
+        db_name: "{{ rds_db_name }}"
+        publicly_accessible: false
+        db_subnet_group_name: "{{ rds_subnet_group_name }}"
+        vpc_security_group_ids:
+          - "{{ security_group_id }}"
+        port: 3306
+        wait: true
+        region: "{{ aws_region }}"
+      register: rds_instance_result
+
+    - name: Record RDS instance information in generated_vars.yml
+      ansible.builtin.lineinfile:
+        path: "{{ playbook_dir }}/../generated_vars.yml"
+        regexp: '^db_instance_identifier:'
+        line: 'db_instance_identifier: "{{ db_instance_identifier }}"'
+        create: yes
+        insertafter: EOF
+
+    - name: Record RDS master password in generated_vars.yml
+      ansible.builtin.lineinfile:
+        path: "{{ playbook_dir }}/../generated_vars.yml"
+        regexp: '^db_master_password:'
+        line: 'db_master_password: "{{ db_master_password }}"'
+        create: yes
+        insertafter: EOF
+
+    - name: Record RDS endpoint in generated_vars.yml
+      ansible.builtin.lineinfile:
+        path: "{{ playbook_dir }}/../generated_vars.yml"
+        regexp: '^rds_endpoint:'
+        line: 'rds_endpoint: "{{ rds_instance_result.endpoint.address }}"'
+        create: yes
+        insertafter: EOF
+
+    - name: Record RDS port in generated_vars.yml
+      ansible.builtin.lineinfile:
+        path: "{{ playbook_dir }}/../generated_vars.yml"
+        regexp: '^rds_port:'
+        line: 'rds_port: {{ rds_instance_result.endpoint.port }}'
+        create: yes
+        insertafter: EOF
+
+    - name: Show RDS endpoint and identifier
+      ansible.builtin.debug:
+        msg: |
+          RDS MySQL instance created and available.
+          Identifier: {{ db_instance_identifier }}
+          Endpoint: {{ rds_instance_result.endpoint.address }}
+          Port: {{ rds_instance_result.endpoint.port }}
+          Symfony database name: {{ rds_db_name }}

@@ -16,12 +16,14 @@
     "league/oauth2-google": "^5.0",
     "nelmio/cors-bundle": "^2.6",
     "symfony/asset": "7.3.*",
+    "symfony/asset-mapper": "7.3.*",
     "symfony/console": "7.3.*",
     "symfony/dotenv": "7.3.*",
     "symfony/flex": "^2.8.1",
     "symfony/form": "7.3.*",
     "symfony/framework-bundle": "7.3.*",
     "symfony/maker-bundle": "^1.64",
+    "symfony/mime": "7.3.*",
     "symfony/runtime": "7.3.*",
     "symfony/security-csrf": "7.3.*",
     "symfony/twig-bundle": "7.3.*",
@@ -59,7 +61,10 @@
   },
   "scripts": {
   "post-install-cmd": [],
-  "post-update-cmd": []
+  "post-update-cmd": [],
+    "auto-scripts": {
+      "importmap:install": "symfony-cmd"
+    }
 },
 
   "extra": {

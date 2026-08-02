@@ -35,7 +35,7 @@ public function create(Request $request, FirebaseService $firebase, CloudinaryUp
     $imageUrl = '';
 
     if ($imageFile) {
-        $imageUrl = $cloudinary->uploadImage($imageFile->getPathname());
+        $imageUrl = $cloudinary->uploadImage($imageFile);
     }
 
     $data = [

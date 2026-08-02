@@ -1,0 +1,39 @@
+- name: Debug Jenkins service files
+  hosts: jenkins
+  become: true
+  tasks:
+    - name: Show /usr/bin/jenkins header
+      ansible.builtin.shell: sed -n '1,160p' /usr/bin/jenkins
+      register: jenkins_sh
+    - ansible.builtin.debug:
+        var: jenkins_sh.stdout_lines
+
+    - name: Show /etc/default/jenkins
+      ansible.builtin.shell: sed -n '1,200p' /etc/default/jenkins || true
+      register: jenkins_default
+    - ansible.builtin.debug:
+        var: jenkins_default.stdout_lines
+
+    - name: Show last 200 lines of Jenkins log
+      ansible.builtin.shell: tail -n 200 /var/log/jenkins/jenkins.log || true
+      register: jenkins_log
+    - ansible.builtin.debug:
+        var: jenkins_log.stdout_lines
+
+    - name: Show Jenkins systemd unit
+      ansible.builtin.shell: sed -n '1,240p' /lib/systemd/system/jenkins.service || true
+      register: jenkins_unit
+    - ansible.builtin.debug:
+        var: jenkins_unit.stdout_lines
+
+    - name: Show systemctl status for jenkins
+      ansible.builtin.shell: systemctl status jenkins.service --no-pager -n 200 || true
+      register: jenkins_status
+    - ansible.builtin.debug:
+        var: jenkins_status.stdout_lines
+
+    - name: Show journalctl for jenkins
+      ansible.builtin.shell: journalctl -xeu jenkins.service --no-pager -n 200 || true
+      register: jenkins_journal
+    - ansible.builtin.debug:
+        var: jenkins_journal.stdout_lines

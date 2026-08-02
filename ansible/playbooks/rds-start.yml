@@ -1,0 +1,32 @@
+- name: Start AWS RDS instance and wait until it is available
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - amazon.aws
+  vars_files:
+    - ../group_vars/all.yml
+    - ../generated_vars.yml
+  tasks:
+    - name: Require db_instance_identifier
+      ansible.builtin.assert:
+        that:
+          - db_instance_identifier is defined
+        fail_msg: "db_instance_identifier must be defined in ansible/generated_vars.yml"
+
+    - name: Start the RDS instance
+      amazon.aws.rds_instance:
+        db_instance_identifier: "{{ db_instance_identifier }}"
+        state: started
+        wait: true
+        region: "{{ aws_region }}"
+      register: rds_start_result
+
+    - name: Show RDS endpoint and DATABASE_URL for Symfony
+      ansible.builtin.debug:
+        msg: |
+          RDS instance {{ db_instance_identifier }} is now available.
+          Endpoint: {{ rds_start_result.endpoint.address }}
+          Symfony DATABASE_URL:
+          mysql://<db_user>:<db_password>@{{ rds_start_result.endpoint.address }}:3306/<db_name>?serverVersion=8.0&charset=utf8mb4
+          (Remplace <db_user>, <db_password> et <db_name> par tes valeurs réelles)
