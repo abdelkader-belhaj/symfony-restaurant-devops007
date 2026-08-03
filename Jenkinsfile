@@ -30,6 +30,30 @@ pipeline {
         }
       }
     }
+
+    stage('Deploy to EKS') {
+      steps {
+        withCredentials([
+            string(credentialsId: 'rds-password', variable: 'RDS_PASSWORD'),
+            string(credentialsId: 'app-secret', variable: 'APP_SECRET'),
+            string(credentialsId: 'google-client-id', variable: 'GOOGLE_CLIENT_ID'),
+            string(credentialsId: 'google-client-secret', variable: 'GOOGLE_CLIENT_SECRET'),
+            [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-credentials']
+        ]) {
+          sh '''
+            sed -e "s|__RDS_PASSWORD__|$RDS_PASSWORD|g" \
+                -e "s|__APP_SECRET__|$APP_SECRET|g" \
+                -e "s|__GOOGLE_CLIENT_ID__|$GOOGLE_CLIENT_ID|g" \
+                -e "s|__GOOGLE_CLIENT_SECRET__|$GOOGLE_CLIENT_SECRET|g" \
+                k8s/secret.yaml.template > k8s/secret.yaml
+
+            kubectl apply -f k8s/configmap.yaml
+            kubectl apply -f k8s/secret.yaml
+            rm -f k8s/secret.yaml
+          '''
+        }
+      }
+    }
   }
   post {
     success {

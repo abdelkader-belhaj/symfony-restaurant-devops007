@@ -44,3 +44,4 @@ iam-policy-ansible-provisioner.json
 
 # Ansible - variables générées (contient mot de passe RDS en clair)
 ansible/generated_vars.yml
+k8s/secret.yaml
