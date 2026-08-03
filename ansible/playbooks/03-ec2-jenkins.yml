@@ -84,6 +84,12 @@
             - curl -sS https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
             - unzip -q /tmp/awscliv2.zip -d /tmp
             - /tmp/aws/install --update || true
+            - curl -L -s https://dl.k8s.io/release/stable.txt > /tmp/k8s_stable.txt || true
+            - curl -L -o /tmp/kubectl https://dl.k8s.io/release/$(cat /tmp/k8s_stable.txt)/bin/linux/amd64/kubectl || true
+            - chmod +x /tmp/kubectl || true
+            - mv /tmp/kubectl /usr/local/bin/kubectl || true
+            - sudo -u jenkins aws sts get-caller-identity || true
+            - sudo -u jenkins aws eks update-kubeconfig --name symfony-restaurant-cluster --region {{ aws_region }} || true
             - apt-get install -y jenkins
             - systemctl enable --now jenkins
       register: jenkins_instance
