@@ -80,6 +80,10 @@
             - apt-get update
             - apt-get install -y openjdk-17-jre-headless docker.io
             - systemctl enable --now docker
+            - apt-get install -y curl unzip
+            - curl -sS https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/awscliv2.zip
+            - unzip -q /tmp/awscliv2.zip -d /tmp
+            - /tmp/aws/install --update || true
             - apt-get install -y jenkins
             - systemctl enable --now jenkins
       register: jenkins_instance
