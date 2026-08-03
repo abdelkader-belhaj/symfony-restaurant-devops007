@@ -47,11 +47,28 @@ pipeline {
                 -e "s|__GOOGLE_CLIENT_SECRET__|$GOOGLE_CLIENT_SECRET|g" \
                 k8s/secret.yaml.template > k8s/secret.yaml
 
+            echo 'DRY-RUN configmap'
+            kubectl apply --dry-run=server -f k8s/configmap.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/configmap.yaml
+
+            echo 'DRY-RUN secret'
+            kubectl apply --dry-run=server -f k8s/secret.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/secret.yaml
+
+            echo 'DRY-RUN nginx configmap'
+            kubectl apply --dry-run=server -f k8s/nginx-configmap.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/nginx-configmap.yaml
+
+            echo 'DRY-RUN deployment'
+            kubectl apply --dry-run=server -f k8s/deployment.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/deployment.yaml
+
+            echo 'DRY-RUN service'
+            kubectl apply --dry-run=server -f k8s/service.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/service.yaml
+
+            echo 'DRY-RUN ingress'
+            kubectl apply --dry-run=server -f k8s/ingress.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/ingress.yaml
 
             # Update deployment image to the build tag and wait for rollout
