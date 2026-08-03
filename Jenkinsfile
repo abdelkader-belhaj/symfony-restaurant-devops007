@@ -49,6 +49,15 @@ pipeline {
 
             kubectl apply -f k8s/configmap.yaml
             kubectl apply -f k8s/secret.yaml
+            kubectl apply -f k8s/nginx-configmap.yaml
+            kubectl apply -f k8s/deployment.yaml
+            kubectl apply -f k8s/service.yaml
+            kubectl apply -f k8s/ingress.yaml
+
+            # Update deployment image to the build tag and wait for rollout
+            kubectl set image deployment/symfony-restaurant-app php-fpm=${ECR_REG}:${BUILD_NUMBER} -n symfony-restaurant
+            kubectl rollout status deployment/symfony-restaurant-app -n symfony-restaurant --timeout=180s
+
             rm -f k8s/secret.yaml
           '''
         }
