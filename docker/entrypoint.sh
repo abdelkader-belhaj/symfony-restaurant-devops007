@@ -21,6 +21,8 @@ wait_for_database() {
   port="3306"
 
   if [ -n "${DATABASE_URL:-}" ]; then
+  export DB_HOST="$host"
+  export DB_PORT="$port"
     if printf '%s' "$DATABASE_URL" | grep -Eq '@([^/:]+)'; then
       host=$(printf '%s' "$DATABASE_URL" | sed -n 's/.*@\([^/:]*\).*/\1/p')
     fi
