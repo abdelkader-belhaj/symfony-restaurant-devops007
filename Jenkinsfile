@@ -92,6 +92,7 @@ pipeline {
       sh '''
         docker image rm -f ${IMAGE_NAME}:${BUILD_NUMBER} || true
         docker image rm -f ${IMAGE_NAME}:latest || true
+        docker system prune -af --volumes --filter "until=24h" || true
         docker logout 153806140965.dkr.ecr.eu-west-1.amazonaws.com || true
       '''
     }
