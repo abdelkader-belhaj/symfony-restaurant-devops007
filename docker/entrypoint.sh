@@ -21,8 +21,6 @@ wait_for_database() {
   port="3306"
 
   if [ -n "${DATABASE_URL:-}" ]; then
-  export DB_HOST="$host"
-  export DB_PORT="$port"
     if printf '%s' "$DATABASE_URL" | grep -Eq '@([^/:]+)'; then
       host=$(printf '%s' "$DATABASE_URL" | sed -n 's/.*@\([^/:]*\).*/\1/p')
     fi
@@ -31,6 +29,9 @@ wait_for_database() {
       port=$(printf '%s' "$DATABASE_URL" | sed -n 's/.*:\([0-9]*\)\/\{0,1\}.*/\1/p')
     fi
   fi
+
+  export DB_HOST="$host"
+  export DB_PORT="$port"
 
   echo "Waiting for database on ${host}:${port}..."
   until php -r '$host=getenv("DB_HOST") ?: "db"; $port=(int)(getenv("DB_PORT") ?: 3306); $socket=@fsockopen($host, $port, $errno, $errstr, 3); if ($socket) { fclose($socket); exit(0); } exit(1);' >/dev/null 2>&1; do
