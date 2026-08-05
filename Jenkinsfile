@@ -84,7 +84,13 @@ pipeline {
 
             # Update deployment image to the build tag and wait for rollout
             kubectl set image deployment/symfony-restaurant-app php-fpm=${ECR_REG}:${BUILD_NUMBER} -n symfony-restaurant
-            kubectl rollout status deployment/symfony-restaurant-app -n symfony-restaurant --timeout=180s
+            if ! kubectl rollout status deployment/symfony-restaurant-app -n symfony-restaurant --timeout=180s; then
+              echo "ROLLOUT ÉCHOUÉ — déclenchement du rollback automatique vers la version précédente stable"
+              kubectl rollout undo deployment/symfony-restaurant-app -n symfony-restaurant
+              kubectl rollout status deployment/symfony-restaurant-app -n symfony-restaurant --timeout=120s
+              echo "Rollback terminé. Le déploiement de la nouvelle version a échoué, l'ancienne version stable a été restaurée."
+              exit 1
+            fi
 
             rm -f k8s/secret.yaml
           '''
