@@ -5,6 +5,17 @@ pipeline {
     IMAGE_NAME = 'symfony-restaurant-app'
   }
   stages {
+    stage('Cleanup Disk Space') {
+      steps {
+        sh '''
+            echo "Espace disque avant nettoyage :"
+            df -h /
+            docker system prune -af --volumes --filter "until=1h" || true
+            echo "Espace disque après nettoyage :"
+            df -h /
+        '''
+      }
+    }
     stage('Checkout') {
       steps {
         checkout scm
