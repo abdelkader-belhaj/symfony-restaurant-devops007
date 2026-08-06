@@ -345,10 +345,57 @@
                     <span style="font-family: 'Satisfy', cursive; color: var(--primary); font-size: 1.8rem;">Délicieux</span>
                 </a>
                 <div class="ms-auto d-flex align-items-center gap-3">
-                    <a href="{{ path('user_rewards') }}" class="text-white text-decoration-none small d-none d-sm-block hover-gold">
-                        <i class="bi bi-gift me-1"></i> Récompenses
-                    </a>
-                    <a href="{{ path('app_logout') }}" class="btn-gold py-1 px-3" style="font-size: 0.8rem;">Quitter</a>
+                    {% if app.session.get('user') %}
+                        {% set unclaimed_rewards = has_unclaimed_rewards(app.session.get('user')) %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-gold btn-sm dropdown-toggle d-flex align-items-center" type="button" id="profileMenuDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle me-2"></i>
+                                <span>{{ app.session.get('user').nomComplete|default('Compte') }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="profileMenuDropdown">
+                                <li class="dropdown-header pb-3 pt-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="user-avatar-initials me-3" style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #f5c96b); color: #111; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                                            {{ app.session.get('user').nomComplete|slice(0, 1)|upper }}
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold text-dark" style="font-size: 1rem;">{{ app.session.get('user').nomComplete }}</h6>
+                                            <small class="text-muted" style="font-size: 0.8rem;">{{ app.session.get('user').email }}</small>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider my-0 opacity-10"></li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center" href="{{ path('user_profile') }}">
+                                        <div class="icon-box me-3 bg-light-blue" style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-person text-primary"></i>
+                                        </div>
+                                        <span>Mon Profil</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center position-relative" href="{{ path('user_rewards') }}">
+                                        <div class="icon-box me-3 bg-light-gold" style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-gift text-warning"></i>
+                                        </div>
+                                        <span>Mes Cadeaux</span>
+                                        {% if unclaimed_rewards %}
+                                            <span class="badge rounded-pill bg-danger ms-auto">Nouveau</span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1 opacity-10"></li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ path('app_logout') }}">
+                                        <div class="icon-box me-3 bg-light-danger" style="width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                                            <i class="bi bi-box-arrow-right"></i>
+                                        </div>
+                                        <span>Déconnexion</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </nav>

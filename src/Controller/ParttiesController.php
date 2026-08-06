@@ -4,8 +4,8 @@
 namespace App\Controller;
 
 use App\Service\FirebaseService;
+use App\Service\S3Uploader;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use App\Service\CloudinaryUploader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -29,7 +29,7 @@ class ParttiesController extends AbstractController
     }
 
     #[Route('/partties/create', name: 'app_partties_create', methods: ['POST'])]
-public function create(Request $request, FirebaseService $firebase, CloudinaryUploader $cloudinary): Response
+public function create(Request $request, FirebaseService $firebase, S3Uploader $cloudinary): Response
 {
     $imageFile = $request->files->get('image');
     $imageUrl = '';

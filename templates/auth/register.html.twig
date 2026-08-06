@@ -99,11 +99,11 @@
         {% endfor %}
     </div>
 
-    <form class="auth-form" action="{{ path('app_register_submit') }}" method="post">
-        <input type="text" id="nomComplete" name="nomComplete" placeholder="Nom complet" required>
-        <input type="tel" id="tel" name="tel" placeholder="Téléphone" required>
-        <input type="email" id="email" name="email" placeholder="Email" required>
-        <input type="password" id="pwd" name="pwd" placeholder="Mot de passe" required>
+    <form class="auth-form" action="{{ path('app_register_submit') }}" method="post" novalidate>
+        <input type="text" id="nomComplete" name="nomComplete" placeholder="Nom complet" required value="{{ app.request.get('nomComplete') ?: '' }}">
+        <input type="tel" id="tel" name="tel" placeholder="Téléphone" required value="{{ app.request.get('tel') ?: '' }}">
+        <input type="email" id="email" name="email" placeholder="Email" required value="{{ app.request.get('email') ?: '' }}">
+        <input type="password" id="pwd" name="pwd" placeholder="Mot de passe" required minlength="6">
         <button type="submit">S'inscrire</button>
     </form>
 

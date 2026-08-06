@@ -87,11 +87,26 @@ class ContactController extends AbstractController
     public function submitFrontContact(Request $request): Response
     {
         if ($request->isMethod('POST')) {
+            $name = trim((string) $request->request->get('name', ''));
+            $email = trim((string) $request->request->get('email', ''));
+            $subject = trim((string) $request->request->get('subject', ''));
+            $message = trim((string) $request->request->get('message', ''));
+
+            if ($name === '' || $email === '' || $subject === '' || $message === '') {
+                $this->addFlash('error', 'Tous les champs du formulaire de contact sont obligatoires.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'contact']);
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->addFlash('error', 'Veuillez saisir une adresse email valide.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'contact']);
+            }
+
             $data = [
-                'name' => $request->request->get('name'),
-                'email' => $request->request->get('email'),
-                'subject' => $request->request->get('subject'),
-                'message' => $request->request->get('message'),
+                'name' => $name,
+                'email' => $email,
+                'subject' => $subject,
+                'message' => $message,
                 'createdAt' => (new \DateTime())->format('Y-m-d H:i:s'),
             ];
 

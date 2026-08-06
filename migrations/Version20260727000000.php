@@ -16,7 +16,10 @@ final class Version20260727000000 extends AbstractMigration
 
     public function up(Schema $schema): void
     {
-        $this->addSql('ALTER TABLE user ADD points INT DEFAULT 0 NOT NULL');
+        $table = $schema->getTable('user');
+        if (!$table->hasColumn('points')) {
+            $this->addSql('ALTER TABLE user ADD points INT DEFAULT 0 NOT NULL');
+        }
     }
 
     public function down(Schema $schema): void

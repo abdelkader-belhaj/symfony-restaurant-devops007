@@ -4,7 +4,7 @@
 namespace App\Controller;
 
 use App\Service\FirebaseService;
-use App\Service\CloudinaryUploader;
+use App\Service\S3Uploader;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -27,7 +27,7 @@ class GalleryController extends AbstractController
     }
 
     #[Route('/gallery/new', name: 'gallery_new')]
-    public function new(Request $request, CloudinaryUploader $cloudinary): Response
+    public function new(Request $request, S3Uploader $cloudinary): Response
     {
         if ($request->isMethod('POST')) {
             $imageFile = $request->files->get('image');
@@ -62,7 +62,7 @@ class GalleryController extends AbstractController
     }
 
     #[Route('/gallery/{key}/edit', name: 'gallery_edit')]
-    public function edit(Request $request, string $key, CloudinaryUploader $cloudinary): Response
+    public function edit(Request $request, string $key, S3Uploader $cloudinary): Response
     {
         $gallery = $this->firebase->getGallery($key);
         if (!$gallery) {

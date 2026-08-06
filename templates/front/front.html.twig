@@ -1199,10 +1199,10 @@ document.addEventListener('DOMContentLoaded', function () {
           <input type="hidden" name="_token" value="{{ csrf_token('new-reservation') }}">
           <div class="row gy-4">
             <div class="col-lg-4 col-md-6">
-              <input type="text" name="name" class="form-control" placeholder="Votre nom">
+              <input type="text" name="name" class="form-control" placeholder="Votre nom" value="{% if app.session.get('user') %}{{ app.session.get('user').nomComplete|default('') }}{% endif %}">
             </div>
             <div class="col-lg-4 col-md-6">
-              <input type="email" name="email" class="form-control" placeholder="Votre adresse e-mail" value="{% if user is defined and user.email is defined %}{{ user.email }}{% endif %}" {% if user is defined and user.email is defined %}readonly{% endif %}>
+              <input type="email" name="email" class="form-control" placeholder="Votre adresse e-mail" value="{% if app.session.get('user') %}{{ app.session.get('user').email|default('') }}{% endif %}" {% if app.session.get('user') %}readonly{% endif %}>
             </div>
             <div class="col-lg-4 col-md-6">
               <input type="text" name="phone" class="form-control" placeholder="Votre numéro de téléphone">
@@ -1447,7 +1447,8 @@ dateInput.setAttribute('min', today);
             class="form-control"
             id="name"
             placeholder="Votre nom"
-            required>
+            required
+            value="{% if app.session.get('user') %}{{ app.session.get('user').nomComplete|default('') }}{% endif %}">
         </div>
         <div class="col-md-6 form-group mt-3 mt-md-0">
           <input
@@ -1456,7 +1457,9 @@ dateInput.setAttribute('min', today);
             name="email"
             id="email"
             placeholder="Votre email"
-            required>
+            required
+            value="{% if app.session.get('user') %}{{ app.session.get('user').email|default('') }}{% endif %}"
+            {% if app.session.get('user') %}readonly{% endif %}>
         </div>
       </div>
       <div class="form-group mt-3">

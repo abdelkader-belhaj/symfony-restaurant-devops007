@@ -1,8 +1,8 @@
 <?php
 namespace App\Controller;
 
-use App\Service\CloudinaryUploader;
 use App\Service\FirebaseService;
+use App\Service\S3Uploader;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -25,7 +25,7 @@ class ChefController extends AbstractController
     }
 
     #[Route('/admin/chefs/create', name: 'chefs_create')]
-    public function create(Request $request, CloudinaryUploader $cloudinary): Response
+    public function create(Request $request, S3Uploader $cloudinary): Response
     {
         if ($request->isMethod('POST')) {
             $imageFile = $request->files->get('image');
@@ -48,7 +48,7 @@ class ChefController extends AbstractController
     }
 
     #[Route('/admin/chefs/edit/{key}', name: 'chefs_edit')]
-    public function edit(string $key, Request $request, CloudinaryUploader $cloudinary): Response
+    public function edit(string $key, Request $request, S3Uploader $cloudinary): Response
     {
         $chef = $this->firebaseService->getChef($key);
         if (!$chef) {

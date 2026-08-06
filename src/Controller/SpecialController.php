@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Service\FirebaseService;
-use App\Service\CloudinaryUploader;
+use App\Service\S3Uploader;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,7 +28,7 @@ class SpecialController extends AbstractController
     }
 
     #[Route('/special/new', name: 'special_new')]
-    public function new(Request $request, CloudinaryUploader $cloudinary): Response
+    public function new(Request $request, S3Uploader $cloudinary): Response
     {
         if ($request->isMethod('POST')) {
             $imageFile = $request->files->get('image');
@@ -62,7 +62,7 @@ class SpecialController extends AbstractController
     }
 
     #[Route('/special/{key}/edit', name: 'special_edit')]
-    public function edit(Request $request, string $key, CloudinaryUploader $cloudinary): Response
+    public function edit(Request $request, string $key, S3Uploader $cloudinary): Response
     {
         $special = $this->firebaseService->getSpecial($key);
         if (!$special) {

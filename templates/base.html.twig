@@ -427,10 +427,89 @@
     }
 
     @media (max-width: 768px) {
-        /* Cache les boutons auth sur mobile - ils seront dans le menu mobile */
+        /* Adapte la section auth pour le menu mobile */
         .nav-auth-section,
         .nav-user-section {
+            margin-left: 0;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(44, 62, 80, 0.1);
+            width: 100%;
+            display: flex !important;
+            justify-content: flex-start;
+            flex-direction: column;
+        }
+
+        .nav-auth-section::before {
             display: none;
+        }
+
+        .nav-auth-section .dropdown,
+        .nav-user-section .dropdown {
+            width: 100%;
+        }
+
+        .nav-auth-section .btn-auth,
+        .nav-user-section .btn-auth,
+        .nav-auth-section .btn-profile,
+        .nav-user-section .btn-profile {
+            width: 100%;
+            justify-content: flex-start;
+            border: 1px solid rgba(44, 62, 80, 0.2);
+            background: rgba(255, 107, 53, 0.05);
+            padding: 10px 15px;
+            margin: 0;
+            font-size: 15px;
+        }
+
+        .nav-auth-section .btn-auth span,
+        .nav-user-section .btn-auth span,
+        .nav-auth-section .btn-profile span,
+        .nav-user-section .btn-profile span {
+            display: inline !important;
+            margin-left: 8px;
+        }
+
+        .nav-auth-section .btn-auth i,
+        .nav-user-section .btn-auth i,
+        .nav-auth-section .btn-profile i,
+        .nav-user-section .btn-profile i {
+            margin-right: 10px;
+            margin-left: 0 !important;
+        }
+
+        .nav-auth-section .dropdown-menu,
+        .nav-user-section .dropdown-menu {
+            position: static !important;
+            float: none !important;
+            width: 100% !important;
+            margin: 10px 0 0 0 !important;
+            inset: auto !important;
+            right: auto !important;
+            left: auto !important;
+            top: auto !important;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+            background: rgba(248, 249, 250, 0.8);
+            border-radius: 4px;
+            display: none;
+        }
+
+        .nav-auth-section .dropdown-menu.show,
+        .nav-user-section .dropdown-menu.show {
+            display: block;
+        }
+
+        .nav-auth-section .dropdown-item,
+        .nav-user-section .dropdown-item {
+            padding: 10px 15px;
+            font-size: 15px;
+        }
+
+        .mobile-nav-active .nav-auth-section,
+        .mobile-nav-active .nav-user-section {
+            display: flex !important;
+            flex-direction: column;
         }
     }
 
@@ -962,6 +1041,52 @@ function showLoginAlert(targetUrl) {
   <!-- Main JS File -->
   <script src="{{ asset('assets/js/main.js') }}"></script>
 
+  <!-- Mobile Menu Dropdown Fix -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const authDropdowns = document.querySelectorAll('.nav-auth-section .dropdown-toggle, .nav-user-section .dropdown-toggle');
+        
+        authDropdowns.forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                // Check if we're on mobile
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    const menu = this.nextElementSibling;
+                    if (menu && menu.classList.contains('dropdown-menu')) {
+                        // Toggle the dropdown menu visibility on mobile
+                        menu.classList.toggle('show');
+                        
+                        // Close other dropdowns
+                        document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+                            if (m !== menu) {
+                                m.classList.remove('show');
+                            }
+                        });
+                    }
+                }
+            });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.nav-auth-section') && !e.target.closest('.nav-user-section')) {
+                document.querySelectorAll('.nav-auth-section .dropdown-menu.show, .nav-user-section .dropdown-menu.show').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                // Reset on desktop
+                document.querySelectorAll('.nav-auth-section .dropdown-menu, .nav-user-section .dropdown-menu').forEach(menu => {
+                    menu.classList.remove('show');
+                });
+            }
+        });
+    });
+  </script>
 
     </body>
 

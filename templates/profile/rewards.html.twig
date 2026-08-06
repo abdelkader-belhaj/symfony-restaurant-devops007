@@ -664,6 +664,68 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
+
+        /* Mobile responsive for nav-auth-section */
+        @media (max-width: 768px) {
+            .nav-auth-section {
+                margin-left: 0;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(44, 62, 80, 0.1);
+                width: 100%;
+                display: flex !important;
+                justify-content: flex-start;
+                flex-direction: column;
+            }
+
+            .nav-auth-section .dropdown-menu,
+            .nav-auth-section .auth-dropdown {
+                position: static !important;
+                float: none !important;
+                width: 100% !important;
+                margin: 10px 0 0 0 !important;
+                inset: auto !important;
+                right: auto !important;
+                left: auto !important;
+                top: auto !important;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+                background: rgba(248, 249, 250, 0.8);
+                border-radius: 4px;
+                display: none;
+            }
+
+            .nav-auth-section .dropdown-menu.show,
+            .nav-auth-section .auth-dropdown.show {
+                display: block;
+            }
+
+            .nav-auth-section .btn-auth {
+                width: 100%;
+                justify-content: flex-start;
+                padding: 10px 12px;
+            }
+
+            .nav-auth-section .auth-dropdown-footer {
+                display: flex;
+                justify-content: space-around;
+                padding: 12px;
+            }
+
+            .nav-auth-section .auth-action-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-decoration: none;
+                color: inherit;
+                font-size: 0.8rem;
+                padding: 8px;
+            }
+
+            .nav-auth-section .auth-action-item:hover {
+                color: var(--accent, #ffb03b);
+            }
+        }
     </style>
 </head>
 <body>
@@ -703,34 +765,50 @@
                     </span>
                 {% endif %}
             </button>
-            <ul class="dropdown-menu dropdown-menu-end auth-dropdown" aria-labelledby="userDropdown">
-                <li class="dropdown-header">
+            <ul class="dropdown-menu dropdown-menu-end auth-dropdown shadow border-0" aria-labelledby="userDropdown">
+                <li class="dropdown-header pb-3 pt-2">
                     <div class="d-flex align-items-center">
-                        <i class="bi bi-person-badge me-2"></i>
+                        <div class="user-avatar-initials me-3">
+                            {{ app.session.get('user').nomComplete|slice(0, 1)|upper }}
+                        </div>
                         <div>
-                            <h6 class="mb-0">{{ app.session.get('user').nomComplete }}</h6>
-                            <small class="text-muted">{{ app.session.get('user').email }}</small>
+                            <h6 class="mb-0 fw-bold text-dark" style="font-size: 1rem;">{{ app.session.get('user').nomComplete }}</h6>
+                            <small class="text-muted" style="font-size: 0.8rem;">{{ app.session.get('user').email }}</small>
                         </div>
                     </div>
                 </li>
-                <li><hr class="dropdown-divider"></li>
-                <li class="auth-dropdown-footer">
-                    <div class="d-flex justify-content-around align-items-center p-2">
-                        {% if app.session.get('user').type == 'client' %}
-                            <a class="auth-action-item" href="{{ path('user_profile') }}" data-label="Profil">
-                                <i class="bi bi-person"></i>
-                            </a>
-                            <a class="auth-action-item position-relative active" href="{{ path('user_rewards') }}" data-label="Cadeaux">
-                                <i class="bi bi-gift"></i>
-                                {% if unclaimed_rewards %}
-                                    <span class="auth-notification-dot reward-notification-badge"></span>
-                                {% endif %}
-                            </a>
-                        {% endif %}
-                        <a class="auth-action-item text-danger" href="{{ path('app_logout') }}" data-label="Déconnexion">
-                            <i class="bi bi-box-arrow-right"></i>
+                <li><hr class="dropdown-divider my-0 opacity-10"></li>
+
+                {% if app.session.get('user').type == 'client' %}
+                    <li>
+                        <a class="dropdown-item py-2 d-flex align-items-center" href="{{ path('user_profile') }}">
+                            <div class="icon-box me-3 bg-light-blue">
+                                <i class="bi bi-person text-primary"></i>
+                            </div>
+                            <span>Mon Profil</span>
                         </a>
-                    </div>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2 d-flex align-items-center position-relative" href="{{ path('user_rewards') }}">
+                            <div class="icon-box me-3 bg-light-gold">
+                                <i class="bi bi-gift text-warning"></i>
+                            </div>
+                            <span>Mes Cadeaux</span>
+                            {% if unclaimed_rewards %}
+                                <span class="badge rounded-pill bg-danger ms-auto gift-badge-anim">Nouveau</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider my-1 opacity-10"></li>
+                {% endif %}
+
+                <li>
+                    <a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ path('app_logout') }}">
+                        <div class="icon-box me-3 bg-light-danger">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </div>
+                        <span>Déconnexion</span>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -744,9 +822,27 @@
                 <i class="bi bi-person me-2"></i>
                 <span>Mon Compte</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end auth-dropdown" aria-labelledby="authDropdown">
-                <li><a class="dropdown-item" href="{{ path('app_login') }}"><i class="bi bi-box-arrow-in-right me-2"></i>Connexion</a></li>
-                <li><a class="dropdown-item" href="{{ path('app_register') }}"><i class="bi bi-person-plus me-2"></i>Inscription</a></li>
+            <ul class="dropdown-menu dropdown-menu-end auth-dropdown shadow border-0" aria-labelledby="authDropdown">
+                <li class="dropdown-header pb-3 pt-2">
+                    <h6 class="mb-0 fw-bold text-dark" style="font-size: 1rem;">Accéder à votre compte</h6>
+                </li>
+                <li><hr class="dropdown-divider my-0 opacity-10"></li>
+                <li>
+                    <a class="dropdown-item py-2 d-flex align-items-center" href="{{ path('app_login') }}">
+                        <div class="icon-box me-3 bg-light-blue">
+                            <i class="bi bi-box-arrow-in-right text-primary"></i>
+                        </div>
+                        <span>Se connecter</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item py-2 d-flex align-items-center" href="{{ path('app_register') }}">
+                        <div class="icon-box me-3 bg-light-gold">
+                            <i class="bi bi-person-plus text-warning"></i>
+                        </div>
+                        <span>Créer un compte</span>
+                    </a>
+                </li>
             </ul>
         </div>
     </li>
@@ -1284,6 +1380,44 @@
                 spinButton.addEventListener('click', spinRoulette);
             }
         })();
+    </script>
+
+    <!-- Mobile dropdown handler for nav-auth-section -->
+    <script>
+        document.querySelectorAll('.nav-auth-section .dropdown-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const menu = this.nextElementSibling;
+                    if (menu && (menu.classList.contains('dropdown-menu') || menu.classList.contains('auth-dropdown'))) {
+                        document.querySelectorAll('.nav-auth-section .dropdown-menu.show, .nav-auth-section .auth-dropdown.show').forEach(m => {
+                            if (m !== menu) {
+                                m.classList.remove('show');
+                                m.previousElementSibling?.classList.remove('show');
+                            }
+                        });
+                        
+                        menu.classList.toggle('show');
+                        this.classList.toggle('show');
+                        return false;
+                    }
+                }
+            });
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                if (!e.target.closest('.nav-auth-section')) {
+                    document.querySelectorAll('.nav-auth-section .dropdown-menu.show, .nav-auth-section .auth-dropdown.show').forEach(menu => {
+                        menu.classList.remove('show');
+                        menu.previousElementSibling?.classList.remove('show');
+                    });
+                }
+            }
+        });
     </script>
 </body>
 </html>

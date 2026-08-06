@@ -38,6 +38,11 @@ services:
             $googleClientId: '%env(GOOGLE_CLIENT_ID)%'
             $googleClientSecret: '%env(GOOGLE_CLIENT_SECRET)%'
 
+    Aws\S3\S3Client:
+        arguments:
+            - version: 'latest'
+              region: 'eu-west-1'
+
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - '%env(DATABASE_URL)%'

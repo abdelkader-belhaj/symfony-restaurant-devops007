@@ -36,11 +36,31 @@ class AuthController extends AbstractController
             return $this->redirectBasedOnUserType($user['type']);
         }
 
-        $nomComplete = $request->request->get('nomComplete');
-        $tel = $request->request->get('tel');
-        $email = $request->request->get('email');
-        $pwd = $request->request->get('pwd');
+        $nomComplete = trim((string) $request->request->get('nomComplete', ''));
+        $tel = trim((string) $request->request->get('tel', ''));
+        $email = trim((string) $request->request->get('email', ''));
+        $pwd = (string) $request->request->get('pwd', '');
         $type = 'client';
+
+        if ($nomComplete === '' || $tel === '' || $email === '' || $pwd === '') {
+            $this->addFlash('error', 'Tous les champs sont obligatoires.');
+            return $this->redirectToRoute('app_register');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->addFlash('error', 'Veuillez saisir une adresse email valide.');
+            return $this->redirectToRoute('app_register');
+        }
+
+        if (!preg_match('/^[0-9]{8}$/', $tel)) {
+            $this->addFlash('error', 'Le numéro de téléphone doit contenir exactement 8 chiffres.');
+            return $this->redirectToRoute('app_register');
+        }
+
+        if (strlen($pwd) < 6) {
+            $this->addFlash('error', 'Le mot de passe doit contenir au moins 6 caractères.');
+            return $this->redirectToRoute('app_register');
+        }
 
         $existingUser = $this->firebaseService->getUserByEmail($email);
         if ($existingUser) {

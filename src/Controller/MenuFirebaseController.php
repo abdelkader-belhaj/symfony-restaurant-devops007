@@ -3,11 +3,11 @@
 namespace App\Controller;
 
 use App\Service\FirebaseService;
+use App\Service\S3Uploader;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\CloudinaryUploader;
 
 class MenuFirebaseController extends AbstractController
 {
@@ -29,7 +29,7 @@ class MenuFirebaseController extends AbstractController
     }
 
     #[Route('/menus/add', name: 'firebase_menu_add', methods: ['GET', 'POST'])]
-    public function add(Request $request, FirebaseService $firebase, CloudinaryUploader $cloudinary): Response
+    public function add(Request $request, FirebaseService $firebase, S3Uploader $cloudinary): Response
     {
         if ($request->isMethod('POST')) {
             $titre = trim($request->request->get('titre'));
@@ -89,7 +89,7 @@ class MenuFirebaseController extends AbstractController
     }
 
     #[Route('/menus/edit/{key}', name: 'firebase_menu_edit', methods: ['GET', 'POST'])]
-    public function edit(string $key, Request $request, FirebaseService $firebase, CloudinaryUploader $cloudinary): Response
+    public function edit(string $key, Request $request, FirebaseService $firebase, S3Uploader $cloudinary): Response
     {
         $menu = $firebase->getMenu($key);
         if (!$menu) {

@@ -59,6 +59,53 @@
   });
 
   /**
+   * Handle Bootstrap dropdowns in mobile menu
+   */
+  document.querySelectorAll('.navmenu .dropdown-toggle').forEach(toggle => {
+    toggle.addEventListener('click', function(e) {
+      // On mobile, prevent default Bootstrap dropdown behavior
+      if (window.innerWidth <= 768) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const menu = this.nextElementSibling;
+        if (menu && menu.classList.contains('dropdown-menu')) {
+          // Close other dropdowns
+          document.querySelectorAll('.navmenu .dropdown-menu.show').forEach(m => {
+            if (m !== menu) {
+              m.classList.remove('show');
+              // Also remove active state from the toggle
+              m.previousElementSibling?.classList.remove('show');
+            }
+          });
+          
+          // Toggle this dropdown
+          menu.classList.toggle('show');
+          this.classList.toggle('show');
+          
+          // Prevent the body click from closing the menu
+          return false;
+        }
+      }
+    });
+  });
+
+  /**
+   * Close dropdowns when clicking outside on mobile menu
+   */
+  document.addEventListener('click', function(e) {
+    if (window.innerWidth <= 768) {
+      // Only close if clicking outside navmenu
+      if (!e.target.closest('.navmenu')) {
+        document.querySelectorAll('.navmenu .dropdown-menu.show').forEach(menu => {
+          menu.classList.remove('show');
+          menu.previousElementSibling?.classList.remove('show');
+        });
+      }
+    }
+  });
+
+  /**
    * Preloader
    */
   const preloader = document.querySelector('#preloader');

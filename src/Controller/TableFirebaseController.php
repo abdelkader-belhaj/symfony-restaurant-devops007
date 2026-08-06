@@ -71,14 +71,56 @@ class TableFirebaseController extends AbstractController
                 return $this->redirectToRoute('front_index', ['_fragment' => 'book-a-table']);
             }
 
+            $name = trim((string) $request->request->get('name', ''));
+            $email = trim((string) $request->request->get('email', ''));
+            $phone = trim((string) $request->request->get('phone', ''));
+            $date = trim((string) $request->request->get('date', ''));
+            $time = trim((string) $request->request->get('time', ''));
+            $people = trim((string) $request->request->get('people', ''));
+            $message = trim((string) $request->request->get('message', ''));
+
+            if ($name === '' || $email === '' || $phone === '' || $date === '' || $time === '' || $people === '') {
+                $this->addFlash('error', 'Veuillez remplir tous les champs obligatoires.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'book-a-table']);
+            }
+
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->addFlash('error', 'Veuillez saisir une adresse email valide.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'book-a-table']);
+            }
+
+            if (!preg_match('/^[0-9]{8}$/', $phone)) {
+                $this->addFlash('error', 'Le numéro de téléphone doit contenir exactement 8 chiffres.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'book-a-table']);
+            }
+
+            $selectedDate = new \DateTime($date);
+            $today = new \DateTime('today');
+            if ($selectedDate < $today) {
+                $this->addFlash('error', 'La date doit être dans le futur.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'book-a-table']);
+            }
+
+            $selectedDateTime = new \DateTime($date . ' ' . $time);
+            $now = new \DateTime();
+            if ($selectedDate->format('Y-m-d') === $now->format('Y-m-d') && $selectedDateTime <= $now) {
+                $this->addFlash('error', 'L\'heure doit être dans le futur.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'book-a-table']);
+            }
+
+            if (!is_numeric($people) || (int) $people <= 0) {
+                $this->addFlash('error', 'Le nombre de personnes doit être supérieur à 0.');
+                return $this->redirectToRoute('front_index', ['_fragment' => 'book-a-table']);
+            }
+
             $data = [
-                'name' => $request->request->get('name'),
-                'email' => $request->request->get('email'),
-                'phone' => $request->request->get('phone'),
-                'date' => $request->request->get('date'),
-                'time' => $request->request->get('time'),
-                'people' => $request->request->get('people'),
-                'message' => $request->request->get('message'),
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+                'date' => $date,
+                'time' => $time,
+                'people' => (int) $people,
+                'message' => $message,
             ];
             $this->firebase->createTable($data);
 

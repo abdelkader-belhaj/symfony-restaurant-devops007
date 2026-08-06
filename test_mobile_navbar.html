@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Mobile Navbar - Mon Compte</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        .header {
+            background: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .branding {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sitename {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ff6b35;
+            margin: 0;
+        }
+
+        /* Desktop Navbar */
+        .navmenu {
+            padding: 0;
+        }
+
+        .navmenu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .navmenu a {
+            color: #2c3e50;
+            text-decoration: none;
+            padding: 10px 15px;
+            font-size: 14px;
+            transition: 0.3s;
+            display: block;
+        }
+
+        .navmenu a:hover {
+            color: #ff6b35;
+        }
+
+        .nav-auth-section {
+            margin-left: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-auth {
+            background: transparent;
+            border: 1px solid rgba(44, 62, 80, 0.2);
+            border-radius: 25px;
+            padding: 8px 16px;
+            color: #ff6b35;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-auth:hover {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: #ff6b35;
+        }
+
+        .dropdown-menu {
+            min-width: 250px;
+            padding: 0.5rem 0;
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 10px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 10px 1.25rem;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            color: #4a5568;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            text-decoration: none;
+            cursor: pointer;
+            width: 100%;
+            border: none;
+            background: none;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #ff6b35;
+        }
+
+        .icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            margin-right: 10px;
+        }
+
+        .bg-light-blue {
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+
+        .bg-light-gold {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+
+        .mobile-nav-toggle {
+            display: none;
+            color: #2c3e50;
+            font-size: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
+        /* MOBILE STYLES */
+        @media (max-width: 768px) {
+            .mobile-nav-toggle {
+                display: block;
+            }
+
+            .navmenu ul {
+                display: none;
+                flex-direction: column;
+                position: fixed;
+                inset: 60px 20px 20px 20px;
+                padding: 10px 0;
+                background: #fff;
+                border-radius: 6px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                max-height: calc(100vh - 100px);
+                overflow-y: auto;
+            }
+
+            .mobile-nav-active .navmenu ul {
+                display: flex;
+            }
+
+            .navmenu a {
+                padding: 12px 20px;
+                font-size: 16px;
+                font-weight: 500;
+            }
+
+            /* KEY FIX: Show auth section on mobile */
+            .nav-auth-section {
+                margin-left: 0;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid rgba(44, 62, 80, 0.1);
+                width: 100%;
+                display: flex !important;
+                justify-content: flex-start;
+                flex-direction: column;
+            }
+
+            .btn-auth {
+                width: 100%;
+                justify-content: flex-start;
+                border: 1px solid rgba(44, 62, 80, 0.2);
+                background: rgba(255, 107, 53, 0.05);
+                padding: 10px 15px;
+                margin: 0;
+                font-size: 15px;
+            }
+
+            .btn-auth span {
+                display: inline !important;
+                margin-left: 8px;
+            }
+
+            .btn-auth i {
+                margin-right: 10px;
+            }
+
+            .dropdown-menu {
+                position: static !important;
+                float: none !important;
+                width: 100% !important;
+                margin: 10px 0 0 0 !important;
+                inset: auto !important;
+                right: auto !important;
+                left: auto !important;
+                top: auto !important;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.06);
+                background: rgba(248, 249, 250, 0.8);
+                border-radius: 4px;
+            }
+
+            .dropdown-item {
+                padding: 10px 15px;
+                font-size: 15px;
+            }
+        }
+
+        body.mobile-nav-active {
+            overflow: hidden;
+        }
+
+        body.mobile-nav-active .mobile-nav-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 9999;
+        }
+
+        main {
+            margin-top: 70px;
+            padding: 20px;
+        }
+
+        .test-info {
+            background: #e7f3ff;
+            border: 1px solid #0066cc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .test-info h3 {
+            color: #0066cc;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="branding">
+            <h1 class="sitename">Délicieux</h1>
+            <nav class="navmenu">
+                <ul>
+                    <li><a href="#hero">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#menu">Menu</a></li>
+                    <li><a href="#gallery">Gallery</a></li>
+                    
+                    <!-- AUTH SECTION - NOW VISIBLE ON MOBILE -->
+                    <li class="nav-auth-section">
+                        <div class="dropdown">
+                            <button class="btn btn-auth" type="button" id="authDropdown">
+                                <i class="bi bi-person"></i>
+                                <span>Mon Compte</span>
+                            </button>
+                            <div class="dropdown-menu" id="authDropdownMenu">
+                                <div style="padding: 15px 16px; background: #fff; border-bottom: 1px solid rgba(0, 0, 0, 0.05);">
+                                    <h6 style="margin: 0; font-weight: bold; font-size: 1rem;">Accéder à votre compte</h6>
+                                </div>
+                                <a class="dropdown-item" href="#login">
+                                    <div class="icon-box bg-light-blue">
+                                        <i class="bi bi-box-arrow-in-right" style="color: #0066cc;"></i>
+                                    </div>
+                                    <span>Se connecter</span>
+                                </a>
+                                <a class="dropdown-item" href="#register">
+                                    <div class="icon-box bg-light-gold">
+                                        <i class="bi bi-person-plus" style="color: #ffc107;"></i>
+                                    </div>
+                                    <span>Créer un compte</span>
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+            </nav>
+            <button class="mobile-nav-toggle bi bi-list"></button>
+        </div>
+    </header>
+
+    <main>
+        <div class="test-info">
+            <h3>📱 Test Mobile Navbar - "Mon Compte"</h3>
+            <p><strong>Instructions :</strong></p>
+            <ol>
+                <li>Redimensionnez votre navigateur à 768px ou moins de largeur (mode mobile)</li>
+                <li>Ou utilisez DevTools (F12) → Mode responsive mobile</li>
+                <li>Cliquez sur le menu hamburger (☰)</li>
+                <li>Scrollez vers le bas du menu</li>
+                <li>Vous devriez voir <strong>"Mon Compte"</strong> avec un bouton "Se connecter" et "Créer un compte"</li>
+                <li>Cliquez sur "Mon Compte" pour ouvrir/fermer le dropdown</li>
+            </ol>
+            <p style="color: #006600;"><strong>✓ FIX APPLIQUÉ :</strong> La section ".nav-auth-section" était cachée avec "display: none" sur mobile. Maintenant elle s'affiche avec "display: flex !important" et le dropdown est visible.</p>
+        </div>
+
+        <h2>Test du changement</h2>
+        <p>Avant : Le menu "Mon Compte" était caché sur mobile (display: none)</p>
+        <p>Après : Le menu "Mon Compte" s'affiche dans le hamburger menu sur mobile ✓</p>
+
+        <h3>Tailles d'écran testées :</h3>
+        <ul>
+            <li><strong>Desktop (≥1200px) :</strong> "Mon Compte" en haut-droit</li>
+            <li><strong>Tablette (768px-1199px) :</strong> "Mon Compte" icône seulement</li>
+            <li><strong>Mobile (&lt;768px) :</strong> "Mon Compte" dans le hamburger menu ✓</li>
+        </ul>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Mobile menu toggle
+        const mobileToggle = document.querySelector('.mobile-nav-toggle');
+        const navmenu = document.querySelector('.navmenu');
+
+        mobileToggle.addEventListener('click', function() {
+            document.body.classList.toggle('mobile-nav-active');
+            this.classList.toggle('bi-list');
+            this.classList.toggle('bi-x');
+        });
+
+        // Auth dropdown toggle on mobile
+        const authButton = document.getElementById('authDropdown');
+        const authMenu = document.getElementById('authDropdownMenu');
+
+        authButton.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                e.preventDefault();
+                authMenu.classList.toggle('show');
+            }
+        });
+
+        // Close menu when clicking on a navigation link
+        document.querySelectorAll('.navmenu a:not(.btn-auth)').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    document.body.classList.remove('mobile-nav-active');
+                    mobileToggle.classList.remove('bi-x');
+                    mobileToggle.classList.add('bi-list');
+                }
+            });
+        });
+
+        // Close auth dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+                authMenu.classList.remove('show');
+            }
+        });
+    </script>
+</body>
+</html>
