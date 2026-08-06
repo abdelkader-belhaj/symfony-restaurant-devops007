@@ -18,6 +18,8 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+COPY docker/php-fpm-pool.conf /usr/local/etc/php-fpm.d/zz-clear-env.conf
+
 # Copy only the vendor directory from the composer builder stage (do NOT copy the composer binary)
 COPY --from=composer_builder /app/vendor /var/www/symfony/vendor
 
