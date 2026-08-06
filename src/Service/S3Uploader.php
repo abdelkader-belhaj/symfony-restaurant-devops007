@@ -49,7 +49,6 @@ class S3Uploader
                     'Key' => $key,
                     'SourceFile' => $filePath,
                     'ContentType' => $file instanceof UploadedFile ? $file->getClientMimeType() : 'image/jpeg',
-                    'ACL' => 'public-read',
                 ]);
 
                 return (string) $result['ObjectURL'];
