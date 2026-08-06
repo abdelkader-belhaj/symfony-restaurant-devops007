@@ -4,6 +4,7 @@ namespace App\Service;
 
 use Aws\Exception\AwsException;
 use Aws\S3\S3Client;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -11,10 +12,12 @@ class S3Uploader
 {
     private ?S3Client $s3Client = null;
     private ?string $bucket = null;
+    private ?LoggerInterface $logger = null;
 
-    public function __construct()
+    public function __construct(?LoggerInterface $logger = null)
     {
-        $this->bucket = $_ENV['S3_UPLOADS_BUCKET'] ?? $_SERVER['S3_UPLOADS_BUCKET'] ?? null;
+        $this->logger = $logger;
+        $this->bucket = $_ENV['S3_UPLOADS_BUCKET'] ?? $_SERVER['S3_UPLOADS_BUCKET'] ?? getenv('S3_UPLOADS_BUCKET') ?: null;
 
         if ($this->bucket) {
             $this->s3Client = new S3Client([
@@ -51,7 +54,10 @@ class S3Uploader
 
                 return (string) $result['ObjectURL'];
             } catch (AwsException $e) {
-                // Fall back to local storage if S3 upload fails.
+                $this->logger?->error('S3 upload failed, falling back to local storage', [
+                    'exception' => $e->getMessage(),
+                    'bucket' => $this->bucket,
+                ]);
             }
         }
 
