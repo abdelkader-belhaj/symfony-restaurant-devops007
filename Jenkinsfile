@@ -74,6 +74,10 @@ pipeline {
             kubectl apply --dry-run=server -f k8s/deployment.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/deployment.yaml
 
+            echo 'DRY-RUN hpa'
+            kubectl apply --dry-run=server -f k8s/hpa.yaml -n symfony-restaurant || true
+            kubectl apply -f k8s/hpa.yaml
+
             echo 'DRY-RUN service'
             kubectl apply --dry-run=server -f k8s/service.yaml -n symfony-restaurant || true
             kubectl apply -f k8s/service.yaml
