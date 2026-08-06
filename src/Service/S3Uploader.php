@@ -54,10 +54,12 @@ class S3Uploader
 
                 return (string) $result['ObjectURL'];
             } catch (AwsException $e) {
-                $this->logger?->error('S3 upload failed, falling back to local storage', [
-                    'exception' => $e->getMessage(),
-                    'bucket' => $this->bucket,
-                ]);
+                $this->logger?->error(sprintf(
+                    'S3 upload failed: %s | bucket=%s | code=%s',
+                    $e->getMessage(),
+                    $this->bucket ?? 'NULL',
+                    $e->getAwsErrorCode() ?? 'unknown'
+                ));
             }
         }
 
