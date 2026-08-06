@@ -1,9 +1,0 @@
-flysystem:
-    storages:
-        uploads.storage:
-            adapter: 'aws'
-            options:
-                client: 'Aws\S3\S3Client'
-                bucket: '%env(S3_UPLOADS_BUCKET)%'
-                region: 'eu-west-1'
-                streamReads: true
