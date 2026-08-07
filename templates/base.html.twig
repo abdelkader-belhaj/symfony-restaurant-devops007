@@ -156,7 +156,7 @@
 
 
                     </ul>
-                    <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+                    <button type="button" class="mobile-nav-toggle d-xl-none bi bi-list" aria-label="Toggle navigation"></button>
                 </nav>
 
             </div>
@@ -426,7 +426,7 @@
         }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 1199px) {
         /* Adapte la section auth pour le menu mobile */
         .nav-auth-section,
         .nav-user-section {
@@ -498,11 +498,6 @@
         .nav-auth-section .dropdown-menu.show,
         .nav-user-section .dropdown-menu.show {
             display: block;
-        }
-
-        body.mobile-nav-active .nav-auth-section .dropdown-menu,
-        body.mobile-nav-active .nav-user-section .dropdown-menu {
-            display: block !important;
         }
 
         .nav-auth-section .dropdown-item,
@@ -1049,70 +1044,47 @@ function showLoginAlert(targetUrl) {
   <!-- Mobile Menu Dropdown Fix -->
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const authDropdowns = document.querySelectorAll('.nav-auth-section .dropdown-toggle, .nav-user-section .dropdown-toggle');
-        const mobileToggle = document.querySelector('.mobile-nav-toggle');
-        const navmenu = document.querySelector('.navmenu');
+        const authDropdownToggles = document.querySelectorAll('.nav-auth-section .dropdown-toggle, .nav-user-section .dropdown-toggle');
 
-        function closeMobileAuthMenus() {
+        function closeAllMobileDropdowns() {
             document.querySelectorAll('.nav-auth-section .dropdown-menu.show, .nav-user-section .dropdown-menu.show').forEach(menu => {
                 menu.classList.remove('show');
             });
         }
 
-        function closeMobileMenu() {
-            document.body.classList.remove('mobile-nav-active');
-            if (mobileToggle) {
-                mobileToggle.classList.add('bi-list');
-                mobileToggle.classList.remove('bi-x');
-            }
-            closeMobileAuthMenus();
-        }
-
-        if (mobileToggle && navmenu) {
-            mobileToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.body.classList.toggle('mobile-nav-active');
-                this.classList.toggle('bi-list');
-                this.classList.toggle('bi-x');
-            });
-        }
-
-        authDropdowns.forEach(toggle => {
+        authDropdownToggles.forEach(toggle => {
             toggle.addEventListener('click', function(e) {
                 if (window.innerWidth <= 768) {
                     e.preventDefault();
                     e.stopPropagation();
 
                     const menu = this.nextElementSibling;
-                    if (menu && menu.classList.contains('dropdown-menu')) {
-                        if (menu.classList.contains('show')) {
-                            closeMobileAuthMenus();
-                        } else {
-                            closeMobileAuthMenus();
+                    if (!menu) {
+                        return;
+                    }
+
+                    // Support both bootstrap dropdown-menu and custom auth-dropdown
+                    if (menu.classList.contains('dropdown-menu') || menu.classList.contains('auth-dropdown')) {
+                        const willShow = !menu.classList.contains('show');
+                        closeAllMobileDropdowns();
+                        if (willShow) {
                             menu.classList.add('show');
                         }
+                        return;
                     }
                 }
             });
         });
 
-        document.querySelectorAll('.navmenu a').forEach(link => {
-            link.addEventListener('click', function() {
-                if (window.innerWidth <= 768) {
-                    closeMobileMenu();
-                }
-            });
-        });
-
         document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768 && !e.target.closest('.nav-auth-section') && !e.target.closest('.nav-user-section')) {
-                closeMobileAuthMenus();
+            if (!e.target.closest('.nav-auth-section') && !e.target.closest('.nav-user-section')) {
+                closeAllMobileDropdowns();
             }
         });
 
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
-                closeMobileAuthMenus();
+                closeAllMobileDropdowns();
             }
         });
     });
