@@ -500,6 +500,11 @@
             display: block;
         }
 
+        body.mobile-nav-active .nav-auth-section .dropdown-menu,
+        body.mobile-nav-active .nav-user-section .dropdown-menu {
+            display: block !important;
+        }
+
         .nav-auth-section .dropdown-item,
         .nav-user-section .dropdown-item {
             padding: 10px 15px;
@@ -1045,44 +1050,69 @@ function showLoginAlert(targetUrl) {
   <script>
     document.addEventListener('DOMContentLoaded', function() {
         const authDropdowns = document.querySelectorAll('.nav-auth-section .dropdown-toggle, .nav-user-section .dropdown-toggle');
-        
+        const mobileToggle = document.querySelector('.mobile-nav-toggle');
+        const navmenu = document.querySelector('.navmenu');
+
+        function closeMobileAuthMenus() {
+            document.querySelectorAll('.nav-auth-section .dropdown-menu.show, .nav-user-section .dropdown-menu.show').forEach(menu => {
+                menu.classList.remove('show');
+            });
+        }
+
+        function closeMobileMenu() {
+            document.body.classList.remove('mobile-nav-active');
+            if (mobileToggle) {
+                mobileToggle.classList.add('bi-list');
+                mobileToggle.classList.remove('bi-x');
+            }
+            closeMobileAuthMenus();
+        }
+
+        if (mobileToggle && navmenu) {
+            mobileToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.body.classList.toggle('mobile-nav-active');
+                this.classList.toggle('bi-list');
+                this.classList.toggle('bi-x');
+            });
+        }
+
         authDropdowns.forEach(toggle => {
             toggle.addEventListener('click', function(e) {
-                // Check if we're on mobile
                 if (window.innerWidth <= 768) {
                     e.preventDefault();
+                    e.stopPropagation();
+
                     const menu = this.nextElementSibling;
                     if (menu && menu.classList.contains('dropdown-menu')) {
-                        // Toggle the dropdown menu visibility on mobile
-                        menu.classList.toggle('show');
-                        
-                        // Close other dropdowns
-                        document.querySelectorAll('.dropdown-menu.show').forEach(m => {
-                            if (m !== menu) {
-                                m.classList.remove('show');
-                            }
-                        });
+                        if (menu.classList.contains('show')) {
+                            closeMobileAuthMenus();
+                        } else {
+                            closeMobileAuthMenus();
+                            menu.classList.add('show');
+                        }
                     }
                 }
             });
         });
 
-        // Close dropdown when clicking outside
+        document.querySelectorAll('.navmenu a').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth <= 768) {
+                    closeMobileMenu();
+                }
+            });
+        });
+
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.nav-auth-section') && !e.target.closest('.nav-user-section')) {
-                document.querySelectorAll('.nav-auth-section .dropdown-menu.show, .nav-user-section .dropdown-menu.show').forEach(menu => {
-                    menu.classList.remove('show');
-                });
+            if (window.innerWidth <= 768 && !e.target.closest('.nav-auth-section') && !e.target.closest('.nav-user-section')) {
+                closeMobileAuthMenus();
             }
         });
 
-        // Handle window resize
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
-                // Reset on desktop
-                document.querySelectorAll('.nav-auth-section .dropdown-menu, .nav-user-section .dropdown-menu').forEach(menu => {
-                    menu.classList.remove('show');
-                });
+                closeMobileAuthMenus();
             }
         });
     });
