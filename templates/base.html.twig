@@ -531,6 +531,19 @@
         transform: scale(1.1);
     }
 
+    /* Force nav menu and dropdowns to be above other elements on mobile */
+    @media (max-width: 768px) {
+      body.mobile-nav-active .navmenu ul {
+        z-index: 9998 !important;
+        pointer-events: auto !important;
+      }
+
+      body.mobile-nav-active .navmenu .dropdown-menu {
+        z-index: 10000 !important;
+        pointer-events: auto !important;
+      }
+    }
+
     /* Séparateur visuel subtil */
     .nav-auth-section::before {
         content: '';

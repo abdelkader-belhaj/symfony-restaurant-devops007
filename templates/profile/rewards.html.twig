@@ -712,6 +712,17 @@
                 padding: 12px;
             }
 
+            /* Ensure mobile nav and dropdowns are on top and clickable */
+            body.mobile-nav-active .navmenu ul {
+                z-index: 9998 !important;
+                pointer-events: auto !important;
+            }
+
+            body.mobile-nav-active .navmenu .dropdown-menu {
+                z-index: 10000 !important;
+                pointer-events: auto !important;
+            }
+
             .nav-auth-section .auth-action-item {
                 display: flex;
                 flex-direction: column;
